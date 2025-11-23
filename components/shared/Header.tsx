@@ -26,8 +26,7 @@ export function Header({ className }: HeaderProps) {
           <h1 className="font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-[#00FF00] to-white uppercase italic drop-shadow-[0_0_8px_rgba(0,255,0,0.5)]">
             HERO
           </h1>
-          <br></br>
-          <p className="text-[10px] tracking-widest text-[#00FF00] uppercase font-bold">Bem vindo, Herói.</p>
+          <p className="text-[10px] font-medium text-[#A1A1AA] tracking-wide">Bem-vindo, Herói</p>
         </div>
 
         {/* User Info & Menu */}
