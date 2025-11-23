@@ -8,10 +8,10 @@ const nextConfig: NextConfig = {
   images: {
     // Allow images from these domains (add Supabase domain when integrated)
     remotePatterns: [
-      // Example for future Supabase integration:
+      // Example for future Supabase integration (replace with your actual project ID):
       // {
       //   protocol: 'https',
-      //   hostname: '*.supabase.co',
+      //   hostname: 'your-project-id.supabase.co',
       //   pathname: '/storage/v1/object/public/**',
       // },
     ],
