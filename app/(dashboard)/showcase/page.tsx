@@ -43,7 +43,7 @@ export default function HeroAppShowcase() {
 
       {/* Stats Overview - Premium Cards */}
       <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#1A1A1A] rounded-lg p-6 border border-white/5 hover:border-[#00FF00]/20 hover:shadow-[0_0_20px_rgba(0,255,0,0.3)] transition-all group">
+        <div className="bg-[#1A1A1A] rounded-lg p-6 border border-white/5 hover:border-[#00FF00]/20 hover:shadow-[0_0_20px_rgba(0,255,0,0.3)] transition-all">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-[#00FF00]/10 rounded-lg shadow-[0_0_15px_rgba(0,255,0,0.2)]">
               <Flame className="w-6 h-6 text-[#00FF00]" />
@@ -175,8 +175,7 @@ export default function HeroAppShowcase() {
                   r: 8, 
                   fill: '#00FF00',
                   stroke: '#0D0D0D',
-                  strokeWidth: 2,
-                  filter: 'drop-shadow(0 0 8px rgba(0, 255, 0, 0.8))'
+                  strokeWidth: 2
                 }}
               />
             </LineChart>
