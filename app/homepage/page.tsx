@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { 
   Settings, 
   ChevronLeft, 
@@ -83,8 +84,8 @@ const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) =
   <header className="fixed top-0 w-full z-50 px-5 py-4 flex justify-between items-center border-b border-white/5 bg-[#0D0D0D]/90 backdrop-blur-md">
     <div className="flex items-center gap-3">
       {/* Logo */}
-      <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
-        <img src="/logo.png" alt="HERO Logo" className="w-full h-full object-contain" />
+      <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center relative">
+        <Image src="/logo.png" alt="HERO Logo" width={40} height={40} className="object-contain" />
       </div>
       
       <div className="flex flex-col">
@@ -103,7 +104,7 @@ const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) =
     >
       <div className={`w-10 h-10 rounded-full bg-[#1A1A1A] border border-white/10 overflow-hidden flex items-center justify-center group-hover:border-[#00FF00] transition-colors ${THEME.glow}`}>
         {user.avatar ? (
-          <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+          <Image src={user.avatar} alt="Profile" width={40} height={40} className="object-cover" />
         ) : (
           <span className="text-sm font-bold text-white group-hover:text-[#00FF00]">{user.name.charAt(0)}</span>
         )}
@@ -303,8 +304,12 @@ const SettingsScreen = ({ user, onBack }: any) => {
 
       <div className="p-6 pb-20 space-y-8">
         <div className="flex flex-col items-center">
-          <div className={`w-24 h-24 rounded-full bg-[#1A1A1A] border-2 border-white/10 flex items-center justify-center text-3xl font-bold text-[#00FF00] ${THEME.glow}`}>
-             {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : user.name.charAt(0)}
+          <div className={`w-24 h-24 rounded-full bg-[#1A1A1A] border-2 border-white/10 flex items-center justify-center text-3xl font-bold text-[#00FF00] ${THEME.glow} overflow-hidden`}>
+             {user.avatar ? (
+               <Image src={user.avatar} width={96} height={96} className="object-cover" alt="User" />
+             ) : (
+               user.name.charAt(0)
+             )}
           </div>
           <h2 className="mt-4 text-2xl font-bold text-white font-[Poppins]">{user.name}</h2>
           <div className="mt-3 bg-[#00FF00]/10 text-[#00FF00] px-4 py-1 rounded-full text-[10px] font-bold border border-[#00FF00]/20 tracking-wider">
