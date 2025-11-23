@@ -1,0 +1,31 @@
+#!/bin/bash
+# Pre-commit hook that checks for uncommitted changes
+# and provides guidance on how to proceed
+
+# Check if there are any unstaged changes
+if ! git diff --quiet; then
+    echo "⚠️  Warning: Uncommitted changes detected in working directory"
+    echo ""
+    echo "You have unstaged changes. To proceed:"
+    echo "  1. Stage your changes: git add <files>"
+    echo "  2. Or stage all: git add ."
+    echo "  3. Or commit with -a flag: git commit -a"
+    echo ""
+    echo "To see what's changed: git status"
+    echo ""
+fi
+
+# Check if there are any untracked files
+if [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    echo "ℹ️  Info: Untracked files detected"
+    echo ""
+    echo "You have untracked files. Consider:"
+    echo "  1. Adding them: git add <files>"
+    echo "  2. Or ignoring them: add to .gitignore"
+    echo ""
+    echo "To see untracked files: git status"
+    echo ""
+fi
+
+# Always allow the commit to proceed
+exit 0
