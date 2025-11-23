@@ -23,9 +23,11 @@ export function Header({ className }: HeaderProps) {
           <div className="w-8 h-8 bg-[#00FF00] rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(0,255,0,0.3)]">
             <Trophy className="w-5 h-5 text-[#0D0D0D]" />
           </div>
-          <h1 className="text-xl font-heading font-bold bg-gradient-to-r from-[#00FF00] via-[#00FF00] to-[#00DD00] bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(0,255,0,0.5)]">
+          <h1 className="font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-[#00FF00] to-white uppercase italic drop-shadow-[0_0_8px_rgba(0,255,0,0.5)]">
             HERO
           </h1>
+          <br></br>
+          <p className="text-[10px] tracking-widest text-[#00FF00] uppercase font-bold">Bem vindo, Herói.</p>
         </div>
 
         {/* User Info & Menu */}
