@@ -45,7 +45,12 @@ export function BottomNav({ className }: BottomNavProps) {
                   : "text-secondary hover:text-foreground"
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive && "drop-shadow-glow")} />
+              <Icon
+                className={cn(
+                  "w-5 h-5",
+                  isActive && "filter drop-shadow-[0_0_8px_rgba(0,255,0,0.6)]"
+                )}
+              />
               <span className="text-xs font-medium">{item.label}</span>
             </Link>
           );
