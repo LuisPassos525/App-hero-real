@@ -23,8 +23,8 @@ export function BottomNav({ className }: BottomNavProps) {
     <nav
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50 lg:hidden",
-        "bg-surface/95 backdrop-blur-md",
-        "border-t border-white/10",
+        "bg-[#1A1A1A]/95 backdrop-blur-md",
+        "border-t border-white/5",
         className
       )}
     >
@@ -41,8 +41,8 @@ export function BottomNav({ className }: BottomNavProps) {
                 "flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-all",
                 "min-w-[44px] min-h-[44px]",
                 isActive
-                  ? "text-primary"
-                  : "text-secondary hover:text-foreground"
+                  ? "text-[#00FF00] shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+                  : "text-secondary hover:text-foreground hover:shadow-[0_0_10px_rgba(0,255,0,0.1)]"
               )}
             >
               <Icon
