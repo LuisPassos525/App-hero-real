@@ -14,7 +14,6 @@ import {
   Cigarette,
   Home,
   BarChart3,
-  LogOut,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -49,6 +48,14 @@ type Habit = {
   isHardMode?: boolean; 
 };
 
+type User = {
+  name: string;
+  email: string;
+  avatar: string | null;
+  streak: number;
+  points: number;
+};
+
 // --- COMPONENTES ---
 
 const BottomNav = ({ currentView, onViewChange }: { currentView: string, onViewChange: (v: string) => void }) => {
@@ -79,14 +86,6 @@ const BottomNav = ({ currentView, onViewChange }: { currentView: string, onViewC
       </div>
     </nav>
   );
-};
-
-type User = {
-  name: string;
-  email: string;
-  avatar: string | null;
-  streak: number;
-  points: number;
 };
 
 const Header = ({ user, onViewChange }: { user: User, onViewChange: (v: string) => void }) => (
@@ -156,7 +155,7 @@ const DayCarousel = () => {
                   : 'bg-[#1A1A1A] border-white/5 text-[#A1A1AA] hover:border-white/20'}
             `}
           >
-            <span className={`text-[8px] font-bold uppercase mb-0.5 ${isToday ? 'opacity-80' : 'opacity-40'}`}>OUT</span>
+            <span className={`text-[8px] font-bold uppercase mb-0.5 ${isToday ? 'opacity-80' : 'opacity-40'}`}>NOV</span>
             <span className="text-lg font-black font-[Poppins]">{day}</span>
           </div>
         )
@@ -230,7 +229,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: {
         <StatCard icon={Activity} value={`${healthPercentage}%`} label="Bio Hacking" />
       </div>
 
-      {/* SEÇÃO 2: HÁBITOS DE HOJE (AGORA ACIMA DO GRÁFICO) */}
+      {/* SEÇÃO 2: HÁBITOS DE HOJE */}
       <div>
         <div className="flex justify-between items-end mb-4 border-l-2 border-[#00FF00] pl-3">
           <div>
@@ -239,7 +238,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: {
             </h2>
             <span className="text-[10px] text-[#A1A1AA] uppercase tracking-widest">Foco do dia</span>
           </div>
-          <span className="text-[10px] font-mono text-[#00FF00]">OUT 2024</span>
+          <span className="text-[10px] font-mono text-[#00FF00]">NOV 2024</span>
         </div>
         
         <DayCarousel />
@@ -255,7 +254,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: {
         </div>
       </div>
 
-      {/* SEÇÃO 3: GRÁFICO (AGORA ABAIXO) */}
+      {/* SEÇÃO 3: GRÁFICO */}
       <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00FF00] to-transparent opacity-50" />
         <h3 className="text-[10px] font-bold text-[#A1A1AA] mb-6 flex items-center gap-2 uppercase tracking-wider">
@@ -328,11 +327,6 @@ const SettingsScreen = ({ user, onBack }: { user: User; onBack: () => void }) =>
             NÍVEL {Math.floor(user.points / 1000) + 1}
           </div>
         </div>
-
-        <button className="w-full p-4 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 flex items-center justify-center gap-2 hover:bg-red-500/10 transition-all uppercase text-xs font-bold tracking-widest">
-            <LogOut className="w-4 h-4" />
-            <span>Encerrar Sessão</span>
-        </button>
       </div>
     </div>
   );
@@ -340,7 +334,7 @@ const SettingsScreen = ({ user, onBack }: { user: User; onBack: () => void }) =>
 
 // --- APP PRINCIPAL ---
 
-export default function App() {
+export default function HomePage() {
   const [view, setView] = useState('home');
   const [user, setUser] = useState({
     name: 'Carlos Oliveira',
@@ -381,7 +375,6 @@ export default function App() {
           <Header user={user} onViewChange={setView} />
           <main className="pb-24">
             {view === 'home' && <HomeScreen user={user} habits={habits} toggleHabit={toggleHabit} />}
-            {/* Outras views (Metas/Progresso) seriam renderizadas aqui */}
             {view === 'metas' && <div className="pt-24 px-5 text-center text-[#A1A1AA]">Tela de Metas em Construção...</div>}
             {view === 'progresso' && <div className="pt-24 px-5 text-center text-[#A1A1AA]">Tela de Progresso em Construção...</div>}
           </main>
