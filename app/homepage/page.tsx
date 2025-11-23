@@ -11,14 +11,8 @@ import {
   CheckCircle2, 
   Dumbbell,
   Cigarette,
-  Globe,
-  Bell,
-  LogOut,
-  ShieldCheck,
-  FileText,
   Home,
   BarChart3,
-  User as UserIcon
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -88,15 +82,14 @@ const BottomNav = ({ currentView, onViewChange }: { currentView: string, onViewC
 const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) => void }) => (
   <header className="fixed top-0 w-full z-50 px-5 py-4 flex justify-between items-center border-b border-white/5 bg-[#0D0D0D]/90 backdrop-blur-md">
     <div className="flex items-center gap-3">
-      {/* Simulação do logo.png */}
-      <div className="w-10 h-10 rounded-lg bg-[#1A1A1A] border border-white/10 flex items-center justify-center overflow-hidden">
-        {/* Aqui entraria <img src="/logo.png" /> */}
-        <div className="w-6 h-6 bg-[#00FF00] rounded-sm rotate-45 shadow-[0_0_10px_#00FF00]" /> 
+      {/* Logo */}
+      <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+        <img src="/logo.png" alt="HERO Logo" className="w-full h-full object-contain" />
       </div>
       
       <div className="flex flex-col">
         <h1 className="text-xl font-black tracking-tighter uppercase italic leading-none">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00FF00] to-white/60">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00FF00] to-white/80">
             HERO
           </span>
         </h1>
@@ -147,7 +140,7 @@ const DayCarousel = ({ currentDay }: { currentDay: number }) => {
                   : 'bg-[#1A1A1A] border-white/5 text-[#A1A1AA] hover:border-white/20'}
             `}
           >
-            <span className={`text-[8px] font-bold uppercase mb-0.5 ${isToday ? 'opacity-80' : 'opacity-40'}`}>OUT</span>
+            <span className={`text-[8px] font-bold uppercase mb-0.5 ${isToday ? 'opacity-80' : 'opacity-40'}`}>NOV</span>
             <span className="text-lg font-black font-[Poppins]">{day}</span>
           </div>
         )
@@ -224,7 +217,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: any) => {
         <StatCard icon={Activity} value={`${healthPercentage}%`} label="Bio Hacking" />
       </div>
 
-      {/* SEÇÃO 2: HÁBITOS DE HOJE (AGORA ACIMA DO GRÁFICO) */}
+      {/* SEÇÃO 2: HÁBITOS DE HOJE */}
       <div>
         <div className="flex justify-between items-end mb-4 border-l-2 border-[#00FF00] pl-3">
           <div>
@@ -233,7 +226,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: any) => {
             </h2>
             <span className="text-[10px] text-[#A1A1AA] uppercase tracking-widest">Foco do dia</span>
           </div>
-          <span className="text-[10px] font-mono text-[#00FF00]">OUT 2024</span>
+          <span className="text-[10px] font-mono text-[#00FF00]">NOV 2024</span>
         </div>
         
         <DayCarousel currentDay={18} />
@@ -249,7 +242,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: any) => {
         </div>
       </div>
 
-      {/* SEÇÃO 3: GRÁFICO (AGORA ABAIXO) */}
+      {/* SEÇÃO 3: GRÁFICO */}
       <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00FF00] to-transparent opacity-50" />
         <h3 className="text-[10px] font-bold text-[#A1A1AA] mb-6 flex items-center gap-2 uppercase tracking-wider">
@@ -311,18 +304,13 @@ const SettingsScreen = ({ user, onBack }: any) => {
       <div className="p-6 pb-20 space-y-8">
         <div className="flex flex-col items-center">
           <div className={`w-24 h-24 rounded-full bg-[#1A1A1A] border-2 border-white/10 flex items-center justify-center text-3xl font-bold text-[#00FF00] ${THEME.glow}`}>
-             {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+             {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : user.name.charAt(0)}
           </div>
           <h2 className="mt-4 text-2xl font-bold text-white font-[Poppins]">{user.name}</h2>
           <div className="mt-3 bg-[#00FF00]/10 text-[#00FF00] px-4 py-1 rounded-full text-[10px] font-bold border border-[#00FF00]/20 tracking-wider">
             NÍVEL {Math.floor(user.points / 1000) + 1}
           </div>
         </div>
-
-        <button className="w-full p-4 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 flex items-center justify-center gap-2 hover:bg-red-500/10 transition-all uppercase text-xs font-bold tracking-widest">
-            <LogOut className="w-4 h-4" />
-            <span>Encerrar Sessão</span>
-        </button>
       </div>
     </div>
   );
@@ -330,7 +318,7 @@ const SettingsScreen = ({ user, onBack }: any) => {
 
 // --- APP PRINCIPAL ---
 
-export default function App() {
+export default function HomePage() {
   const [view, setView] = useState('home');
   const [user, setUser] = useState({
     name: 'Carlos Oliveira',
@@ -371,7 +359,6 @@ export default function App() {
           <Header user={user} onViewChange={setView} />
           <main className="pb-24">
             {view === 'home' && <HomeScreen user={user} habits={habits} toggleHabit={toggleHabit} />}
-            {/* Outras views (Metas/Progresso) seriam renderizadas aqui */}
             {view === 'metas' && <div className="pt-24 px-5 text-center text-[#A1A1AA]">Tela de Metas em Construção...</div>}
             {view === 'progresso' && <div className="pt-24 px-5 text-center text-[#A1A1AA]">Tela de Progresso em Construção...</div>}
           </main>
