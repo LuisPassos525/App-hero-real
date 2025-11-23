@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { 
   Settings, 
   ChevronLeft, 
@@ -11,14 +12,9 @@ import {
   CheckCircle2, 
   Dumbbell,
   Cigarette,
-  Globe,
-  Bell,
-  LogOut,
-  ShieldCheck,
-  FileText,
   Home,
   BarChart3,
-  User as UserIcon
+  LogOut,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -85,18 +81,25 @@ const BottomNav = ({ currentView, onViewChange }: { currentView: string, onViewC
   );
 };
 
-const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) => void }) => (
+type User = {
+  name: string;
+  email: string;
+  avatar: string | null;
+  streak: number;
+  points: number;
+};
+
+const Header = ({ user, onViewChange }: { user: User, onViewChange: (v: string) => void }) => (
   <header className="fixed top-0 w-full z-50 px-5 py-4 flex justify-between items-center border-b border-white/5 bg-[#0D0D0D]/90 backdrop-blur-md">
     <div className="flex items-center gap-3">
-      {/* Simulação do logo.png */}
-      <div className="w-10 h-10 rounded-lg bg-[#1A1A1A] border border-white/10 flex items-center justify-center overflow-hidden">
-        {/* Aqui entraria <img src="/logo.png" /> */}
-        <div className="w-6 h-6 bg-[#00FF00] rounded-sm rotate-45 shadow-[0_0_10px_#00FF00]" /> 
+      {/* Logo */}
+      <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center relative">
+        <Image src="/logo.png" alt="HERO Logo" width={40} height={40} className="object-contain" />
       </div>
       
       <div className="flex flex-col">
         <h1 className="text-xl font-black tracking-tighter uppercase italic leading-none">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00FF00] to-white/60">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00FF00] to-white/80">
             HERO
           </span>
         </h1>
@@ -110,7 +113,7 @@ const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) =
     >
       <div className={`w-10 h-10 rounded-full bg-[#1A1A1A] border border-white/10 overflow-hidden flex items-center justify-center group-hover:border-[#00FF00] transition-colors ${THEME.glow}`}>
         {user.avatar ? (
-          <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+          <Image src={user.avatar} alt="Profile" width={40} height={40} className="object-cover" />
         ) : (
           <span className="text-sm font-bold text-white group-hover:text-[#00FF00]">{user.name.charAt(0)}</span>
         )}
@@ -119,7 +122,13 @@ const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) =
   </header>
 );
 
-const StatCard = ({ icon: Icon, value, label, sublabel, accentColor = "text-[#00FF00]" }: any) => (
+const StatCard = ({ icon: Icon, value, label, sublabel, accentColor = "text-[#00FF00]" }: { 
+  icon: React.ElementType; 
+  value: string | number; 
+  label: string; 
+  sublabel?: string; 
+  accentColor?: string;
+}) => (
   <div className={`bg-[#1A1A1A] border border-white/5 p-3 rounded-xl flex flex-col items-center justify-center text-center hover:border-[#00FF00]/30 transition-all group min-h-[100px]`}>
     <Icon className={`w-4 h-4 mb-2 ${accentColor} opacity-80 group-hover:opacity-100 group-hover:drop-shadow-[0_0_8px_rgba(0,255,0,0.5)] transition-all`} />
     <span className="text-xl font-bold text-white tracking-tight">{value}</span>
@@ -128,7 +137,7 @@ const StatCard = ({ icon: Icon, value, label, sublabel, accentColor = "text-[#00
   </div>
 );
 
-const DayCarousel = ({ currentDay }: { currentDay: number }) => {
+const DayCarousel = () => {
   const days = Array.from({ length: 7 }, (_, i) => i + 15);
   return (
     <div className="flex space-x-2 overflow-x-auto pb-4 pt-2 no-scrollbar mask-fade-sides">
@@ -157,15 +166,6 @@ const DayCarousel = ({ currentDay }: { currentDay: number }) => {
 };
 
 const HabitItem = ({ habit, onToggle }: { habit: Habit, onToggle: (id: number) => void }) => {
-  const getIcon = () => {
-    switch(habit.category) {
-      case 'vice': return Cigarette;
-      case 'exercise': return Dumbbell;
-      default: return CheckCircle2;
-    }
-  };
-  const Icon = getIcon();
-
   return (
     <div 
       onClick={() => onToggle(habit.id)}
@@ -184,7 +184,9 @@ const HabitItem = ({ habit, onToggle }: { habit: Habit, onToggle: (id: number) =
             ? 'bg-[#00FF00] text-black shadow-[0_0_10px_rgba(0,255,0,0.4)]' 
             : 'bg-[#0D0D0D] text-[#A1A1AA] border border-white/10 group-hover:text-white'}
         `}>
-          <Icon className="w-4 h-4" />
+          {habit.category === 'vice' && <Cigarette className="w-4 h-4" />}
+          {habit.category === 'exercise' && <Dumbbell className="w-4 h-4" />}
+          {habit.category === 'health' && <CheckCircle2 className="w-4 h-4" />}
         </div>
         <div>
           <h3 className={`font-bold text-xs ${habit.completed ? 'text-[#A1A1AA] line-through decoration-[#00FF00]/50' : 'text-white'}`}>
@@ -209,7 +211,11 @@ const HabitItem = ({ habit, onToggle }: { habit: Habit, onToggle: (id: number) =
 
 // --- TELAS ---
 
-const HomeScreen = ({ user, habits, toggleHabit }: any) => {
+const HomeScreen = ({ user, habits, toggleHabit }: { 
+  user: User; 
+  habits: Habit[]; 
+  toggleHabit: (id: number) => void;
+}) => {
   const completedCount = habits.filter((h: Habit) => h.completed).length;
   const healthPercentage = Math.round((completedCount / habits.length) * 100);
 
@@ -236,7 +242,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: any) => {
           <span className="text-[10px] font-mono text-[#00FF00]">OUT 2024</span>
         </div>
         
-        <DayCarousel currentDay={18} />
+        <DayCarousel />
 
         <div className="mt-4">
           <div className="flex items-center gap-2 mb-3">
@@ -298,7 +304,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: any) => {
   );
 };
 
-const SettingsScreen = ({ user, onBack }: any) => {
+const SettingsScreen = ({ user, onBack }: { user: User; onBack: () => void }) => {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white animate-in slide-in-from-right duration-300">
       <header className="sticky top-0 bg-[#0D0D0D]/90 backdrop-blur-md border-b border-white/5 p-4 flex items-center z-50">
@@ -310,8 +316,12 @@ const SettingsScreen = ({ user, onBack }: any) => {
 
       <div className="p-6 pb-20 space-y-8">
         <div className="flex flex-col items-center">
-          <div className={`w-24 h-24 rounded-full bg-[#1A1A1A] border-2 border-white/10 flex items-center justify-center text-3xl font-bold text-[#00FF00] ${THEME.glow}`}>
-             {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+          <div className={`w-24 h-24 rounded-full bg-[#1A1A1A] border-2 border-white/10 flex items-center justify-center text-3xl font-bold text-[#00FF00] ${THEME.glow} overflow-hidden`}>
+             {user.avatar ? (
+               <Image src={user.avatar} width={96} height={96} className="object-cover" alt="User" />
+             ) : (
+               user.name.charAt(0)
+             )}
           </div>
           <h2 className="mt-4 text-2xl font-bold text-white font-[Poppins]">{user.name}</h2>
           <div className="mt-3 bg-[#00FF00]/10 text-[#00FF00] px-4 py-1 rounded-full text-[10px] font-bold border border-[#00FF00]/20 tracking-wider">

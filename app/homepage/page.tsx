@@ -48,6 +48,14 @@ type Habit = {
   isHardMode?: boolean; 
 };
 
+type User = {
+  name: string;
+  email: string;
+  avatar: string | null;
+  streak: number;
+  points: number;
+};
+
 // --- COMPONENTES ---
 
 const BottomNav = ({ currentView, onViewChange }: { currentView: string, onViewChange: (v: string) => void }) => {
@@ -80,7 +88,7 @@ const BottomNav = ({ currentView, onViewChange }: { currentView: string, onViewC
   );
 };
 
-const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) => void }) => (
+const Header = ({ user, onViewChange }: { user: User, onViewChange: (v: string) => void }) => (
   <header className="fixed top-0 w-full z-50 px-5 py-4 flex justify-between items-center border-b border-white/5 bg-[#0D0D0D]/90 backdrop-blur-md">
     <div className="flex items-center gap-3">
       {/* Logo */}
@@ -113,7 +121,13 @@ const Header = ({ user, onViewChange }: { user: any, onViewChange: (v: string) =
   </header>
 );
 
-const StatCard = ({ icon: Icon, value, label, sublabel, accentColor = "text-[#00FF00]" }: any) => (
+const StatCard = ({ icon: Icon, value, label, sublabel, accentColor = "text-[#00FF00]" }: { 
+  icon: React.ElementType; 
+  value: string | number; 
+  label: string; 
+  sublabel?: string; 
+  accentColor?: string;
+}) => (
   <div className={`bg-[#1A1A1A] border border-white/5 p-3 rounded-xl flex flex-col items-center justify-center text-center hover:border-[#00FF00]/30 transition-all group min-h-[100px]`}>
     <Icon className={`w-4 h-4 mb-2 ${accentColor} opacity-80 group-hover:opacity-100 group-hover:drop-shadow-[0_0_8px_rgba(0,255,0,0.5)] transition-all`} />
     <span className="text-xl font-bold text-white tracking-tight">{value}</span>
@@ -122,7 +136,7 @@ const StatCard = ({ icon: Icon, value, label, sublabel, accentColor = "text-[#00
   </div>
 );
 
-const DayCarousel = ({ currentDay }: { currentDay: number }) => {
+const DayCarousel = () => {
   const days = Array.from({ length: 7 }, (_, i) => i + 15);
   return (
     <div className="flex space-x-2 overflow-x-auto pb-4 pt-2 no-scrollbar mask-fade-sides">
@@ -151,15 +165,6 @@ const DayCarousel = ({ currentDay }: { currentDay: number }) => {
 };
 
 const HabitItem = ({ habit, onToggle }: { habit: Habit, onToggle: (id: number) => void }) => {
-  const getIcon = () => {
-    switch(habit.category) {
-      case 'vice': return Cigarette;
-      case 'exercise': return Dumbbell;
-      default: return CheckCircle2;
-    }
-  };
-  const Icon = getIcon();
-
   return (
     <div 
       onClick={() => onToggle(habit.id)}
@@ -178,7 +183,9 @@ const HabitItem = ({ habit, onToggle }: { habit: Habit, onToggle: (id: number) =
             ? 'bg-[#00FF00] text-black shadow-[0_0_10px_rgba(0,255,0,0.4)]' 
             : 'bg-[#0D0D0D] text-[#A1A1AA] border border-white/10 group-hover:text-white'}
         `}>
-          <Icon className="w-4 h-4" />
+          {habit.category === 'vice' && <Cigarette className="w-4 h-4" />}
+          {habit.category === 'exercise' && <Dumbbell className="w-4 h-4" />}
+          {habit.category === 'health' && <CheckCircle2 className="w-4 h-4" />}
         </div>
         <div>
           <h3 className={`font-bold text-xs ${habit.completed ? 'text-[#A1A1AA] line-through decoration-[#00FF00]/50' : 'text-white'}`}>
@@ -203,7 +210,11 @@ const HabitItem = ({ habit, onToggle }: { habit: Habit, onToggle: (id: number) =
 
 // --- TELAS ---
 
-const HomeScreen = ({ user, habits, toggleHabit }: any) => {
+const HomeScreen = ({ user, habits, toggleHabit }: { 
+  user: User; 
+  habits: Habit[]; 
+  toggleHabit: (id: number) => void;
+}) => {
   const completedCount = habits.filter((h: Habit) => h.completed).length;
   const healthPercentage = Math.round((completedCount / habits.length) * 100);
 
@@ -230,7 +241,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: any) => {
           <span className="text-[10px] font-mono text-[#00FF00]">NOV 2024</span>
         </div>
         
-        <DayCarousel currentDay={18} />
+        <DayCarousel />
 
         <div className="mt-4">
           <div className="flex items-center gap-2 mb-3">
@@ -292,7 +303,7 @@ const HomeScreen = ({ user, habits, toggleHabit }: any) => {
   );
 };
 
-const SettingsScreen = ({ user, onBack }: any) => {
+const SettingsScreen = ({ user, onBack }: { user: User; onBack: () => void }) => {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white animate-in slide-in-from-right duration-300">
       <header className="sticky top-0 bg-[#0D0D0D]/90 backdrop-blur-md border-b border-white/5 p-4 flex items-center z-50">
