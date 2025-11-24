@@ -66,14 +66,18 @@ export default function LoginPage() {
       });
 
       if (error) {
+        // Tratamento específico para e-mail não confirmado
+        if (error.message.includes("Email not confirmed")) {
+          toast.warning("Verifique seu e-mail para ativar a conta antes de entrar.");
+          return;
+        }
+        
         // Don't redirect on error, show toast instead
         let errorMessage = "Credenciais inválidas. Verifique seu email e senha.";
         
         // Provide more specific error messages
         if (error.message.includes("Invalid login credentials")) {
           errorMessage = "Email ou senha incorretos. Verifique suas credenciais.";
-        } else if (error.message.includes("Email not confirmed")) {
-          errorMessage = "Email não confirmado. Verifique sua caixa de entrada.";
         } else if (error.message.includes("User not found")) {
           errorMessage = "Usuário não encontrado. Crie uma conta primeiro.";
         }
@@ -89,9 +93,14 @@ export default function LoginPage() {
 
       if (data.user) {
         toast.success("Login realizado com sucesso!");
-        // Force refresh to update server-side cookies before redirect
+        
+        // TRUQUE DO NEXT.JS + SUPABASE:
+        // 1. Atualiza a rota para garantir que o middleware pegue o novo cookie
         router.refresh();
-        router.push("/homepage");
+        // 2. Aguarda um micro-ciclo antes de empurrar a nova rota
+        setTimeout(() => {
+          router.push("/homepage");
+        }, 500);
       }
     } catch (error) {
       console.error("Login error:", error);

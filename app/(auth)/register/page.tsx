@@ -74,6 +74,7 @@ export default function RegisterPage() {
           data: {
             name: formData.name,
           },
+          emailRedirectTo: `${window.location.origin}/callback?next=/quiz`,
         },
       });
 
@@ -111,7 +112,7 @@ export default function RegisterPage() {
         } else {
           // Email confirmation required - show verification state
           setEmailSent(true);
-          toast.success("Verifique seu e-mail para confirmar a conta.");
+          toast.success("E-mail enviado! Verifique também sua caixa de SPAM.");
         }
       }
     } catch (error) {
@@ -140,13 +141,13 @@ export default function RegisterPage() {
             <p className="text-[#A1A1AA] mb-6">
               Enviamos um link de confirmação para <strong className="text-white">{formData.email}</strong>.
               <br />
-              Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.
+              Por favor, verifique sua caixa de entrada (e a pasta SPAM) e clique no link para ativar sua conta.
             </p>
             <Link
-              href="/login"
+              href="/"
               className="text-[#00FF00] hover:underline font-medium"
             >
-              Voltar para o Login
+              Voltar ao Início
             </Link>
           </div>
         </div>
