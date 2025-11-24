@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Trophy, Flame, Target, Zap } from "lucide-react";
 
 export default function LandingPage() {
@@ -8,9 +9,13 @@ export default function LandingPage() {
       <header className="fixed top-0 w-full z-50 bg-[#0D0D0D]/80 backdrop-blur-md border-b border-white/5">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#00FF00] rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(0,255,0,0.3)]">
-              <Trophy className="w-5 h-5 text-[#0D0D0D]" />
-            </div>
+            <Image 
+              src="/logo.png" 
+              alt="HERO Logo" 
+              width={32} 
+              height={32} 
+              className="w-8 h-8 rounded-lg shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+            />
             <h1 className="font-black tracking-tighter text-xl text-transparent bg-clip-text bg-gradient-to-r from-[#00FF00] to-white/80 uppercase italic">
               HERO
             </h1>
@@ -50,7 +55,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/signup"
+              href="/register"
               className="px-8 py-4 rounded-xl bg-[#00FF00] text-black font-bold hover:shadow-[0_0_30px_rgba(0,255,0,0.5)] transition-all text-lg"
             >
               Começar Agora
