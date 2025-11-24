@@ -1,6 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
+// Get environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Provide placeholder values for build time to avoid errors
+// In production, these will be properly set via environment variables
+const url = supabaseUrl || "https://placeholder.supabase.co";
+const key = supabaseAnonKey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUwMDAwMDAsImV4cCI6MTk2MDU3NjAwMH0.placeholder";
+
+// Warn in client-side if using placeholders
+if (typeof window !== "undefined") {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error(
+      "⚠️ Missing Supabase environment variables. Please check your .env.local file."
+    );
+  }
+}
+
+export const supabase = createClient(url, key);

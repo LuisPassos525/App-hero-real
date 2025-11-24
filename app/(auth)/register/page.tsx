@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -103,6 +104,17 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Premium Card with Glass Effect */}
         <div className="bg-[#1A1A1A] border border-[#00FF00]/20 rounded-2xl p-8 shadow-[0_0_30px_rgba(0,255,0,0.15)] backdrop-blur-sm">
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/logo.png"
+              alt="HERO Logo"
+              width={64}
+              height={64}
+              className="w-16 h-16 rounded-lg shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+            />
+          </div>
+          
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold font-heading mb-2">
