@@ -68,7 +68,18 @@ export default function LoginPage() {
 
       if (error) {
         // Don't redirect on error, show toast instead
-        toast.error("Credenciais inválidas. Verifique seu email e senha.", {
+        let errorMessage = "Credenciais inválidas. Verifique seu email e senha.";
+        
+        // Provide more specific error messages
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Email ou senha incorretos. Verifique suas credenciais.";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Email não confirmado. Verifique sua caixa de entrada.";
+        } else if (error.message.includes("User not found")) {
+          errorMessage = "Usuário não encontrado. Crie uma conta primeiro.";
+        }
+        
+        toast.error(errorMessage, {
           style: {
             background: "#DC2626",
             color: "#FFFFFF",
@@ -84,7 +95,11 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Erro ao fazer login. Tente novamente.", {
+      const errorMessage = error instanceof Error 
+        ? `Erro ao fazer login: ${error.message}` 
+        : "Erro ao fazer login. Verifique sua conexão e tente novamente.";
+      
+      toast.error(errorMessage, {
         style: {
           background: "#DC2626",
           color: "#FFFFFF",

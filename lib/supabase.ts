@@ -7,7 +7,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // Provide placeholder values for build time to avoid errors
 // In production, these will be properly set via environment variables
 const url = supabaseUrl || "https://placeholder.supabase.co";
-const key = supabaseAnonKey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUwMDAwMDAsImV4cCI6MTk2MDU3NjAwMH0.placeholder";
+const key = supabaseAnonKey || "placeholder-anon-key";
 
 // Warn in client-side if using placeholders
 if (typeof window !== "undefined") {
