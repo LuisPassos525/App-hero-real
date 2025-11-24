@@ -19,6 +19,10 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+// Delay in ms to wait after router.refresh() before navigating
+// This ensures Supabase session cookies are properly synchronized with Next.js middleware
+const AUTH_REDIRECT_DELAY_MS = 500;
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -100,7 +104,7 @@ export default function LoginPage() {
         // 2. Aguarda um micro-ciclo antes de empurrar a nova rota
         setTimeout(() => {
           router.push("/homepage");
-        }, 500);
+        }, AUTH_REDIRECT_DELAY_MS);
       }
     } catch (error) {
       console.error("Login error:", error);
