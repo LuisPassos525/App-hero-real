@@ -103,7 +103,95 @@ A IA deve usar este esboço para criar as migrações SQL:
 * daily_score
 * health_percentage
 
-## 6. Requisitos PWA (Progressive Web App)
+### onboarding_results (Novo)
+
+* id
+* user_id (uuid, FK auth.users)
+* quiz_data (jsonb: armazena todas as respostas do quiz)
+* vitality_score (integer: pontuação calculada 0-100+)
+* flags (text[]: alertas como 'critical_alert', 'toxin_alert', etc.)
+* badges (text[]: conquistas como 'Monk Start', 'Nutrition Pro', etc.)
+* completed_at (timestamp)
+* created_at (timestamp)
+* updated_at (timestamp)
+
+## 6. Setup do Projeto
+
+### 6.1. Variáveis de Ambiente
+
+Crie um arquivo `.env.local` na raiz do projeto baseado no `.env.example`:
+
+```bash
+cp .env.example .env.local
+```
+
+Preencha com suas credenciais do Supabase:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### 6.2. Instalação e Execução
+
+```bash
+# Instalar dependências
+npm install
+
+# Executar em modo de desenvolvimento
+npm run dev
+
+# Build para produção
+npm run build
+
+# Iniciar produção
+npm start
+```
+
+### 6.3. Criação da Tabela de Onboarding no Supabase
+
+Execute este SQL no Supabase SQL Editor:
+
+```sql
+-- Criar tabela de resultados do onboarding
+CREATE TABLE onboarding_results (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  quiz_data JSONB NOT NULL,
+  vitality_score INTEGER NOT NULL DEFAULT 0,
+  flags TEXT[] DEFAULT '{}',
+  badges TEXT[] DEFAULT '{}',
+  completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Habilitar RLS
+ALTER TABLE onboarding_results ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Usuário só pode ver seus próprios resultados
+CREATE POLICY "Users can view their own onboarding results"
+  ON onboarding_results
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Policy: Usuário pode inserir seus próprios resultados
+CREATE POLICY "Users can insert their own onboarding results"
+  ON onboarding_results
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Usuário pode atualizar seus próprios resultados
+CREATE POLICY "Users can update their own onboarding results"
+  ON onboarding_results
+  FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- Criar índice para melhor performance
+CREATE INDEX idx_onboarding_user_id ON onboarding_results(user_id);
+```
+
+## 7. Requisitos PWA (Progressive Web App)
 
 * Manifesto: `manifest.json` configurado com fundo `#0D0D0D` e ícones Neon.
 * Offline: Service Workers básicos.
@@ -112,11 +200,39 @@ A IA deve usar este esboço para criar as migrações SQL:
 
 ## 7. Fluxo de Navegação
 
-* Landing Page → CTA Cadastro.
-* Onboarding → Definição de metas iniciais.
-* Planos → Acesso.
-* Dashboard (Home) → Visão geral de progresso.
-* Configurações/Perfil → Gestão de conta.
+* Landing Page → CTA Cadastro (`/register`)
+* Cadastro → Onboarding Quiz (`/quiz`)
+* Quiz → Dashboard (Home) (`/homepage`)
+* Dashboard (Home) → Visão geral de progresso
+* Configurações/Perfil → Gestão de conta
+
+### 7.1. Onboarding Flow (Implementado)
+
+O sistema de onboarding consiste em:
+
+1. **Landing Page** (`/`):
+   - Logo HERO com gradiente verde neon
+   - CTA principal redireciona para `/register`
+   - Apresentação de features principais
+
+2. **Página de Registro** (`/register`):
+   - Formulário com validação Zod
+   - Campos: Nome, Email, Senha, Confirmar Senha
+   - Integração com Supabase Auth
+   - Toast notifications para feedback
+   - Redirecionamento automático para `/quiz` após sucesso
+
+3. **Quiz Gamificado** (`/quiz`):
+   - 5 passos progressivos com barra de progresso
+   - **Passo 1:** Informações básicas (Nome, Idade, Altura, Peso com botões +/-)
+   - **Passo 2:** Biomarcadores críticos (Frequência de ereção matinal, Composição corporal)
+   - **Passo 3:** Constituição & Sono (Duração do sono, Uso de telas)
+   - **Passo 4:** Nutrição (Fontes de gordura, Tipo de recipiente de água)
+   - **Passo 5:** Treino & Mente (Foco de exercício, Sensação diária)
+   - Cálculo automático de Vitality Score
+   - Sistema de Flags (alertas) e Badges (conquistas)
+   - Salvamento no Supabase
+   - Redirecionamento para `/homepage`
 
 ## 8. Definição Visual (Theme & UI)
 
