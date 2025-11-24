@@ -548,7 +548,7 @@ export default function QuizPage() {
                 <div className="flex items-center space-x-2 p-3 rounded-lg bg-[#0D0D0D] border border-white/10 hover:border-[#00FF00]/30 cursor-pointer">
                   <RadioGroupItem value="exhausted" id="exhausted" />
                   <Label htmlFor="exhausted" className="text-white cursor-pointer flex-1">
-                    "Frito" mentalmente/Ansioso (⚠️ Sympathetic Dominance)
+                    &quot;Frito&quot; mentalmente/Ansioso (⚠️ Sympathetic Dominance)
                   </Label>
                 </div>
               </RadioGroup>
