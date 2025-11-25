@@ -37,6 +37,7 @@ type QuizData = {
 };
 
 const TOTAL_STEPS = 5;
+const INITIAL_USER_LEVEL = 1;
 
 export default function QuizPage() {
   const router = useRouter();
@@ -160,7 +161,7 @@ export default function QuizPage() {
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email,
-        level: 1,
+        level: INITIAL_USER_LEVEL,
         total_points: vitalityScore,
         updated_at: new Date().toISOString(),
       });
