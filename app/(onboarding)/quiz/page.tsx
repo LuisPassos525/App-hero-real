@@ -140,22 +140,39 @@ export default function QuizPage() {
     setLoading(true);
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      // Session validation: Check if session exists
+      const { data } = await supabase.auth.getSession();
 
-      if (!user) {
-        toast.error("Usuário não autenticado");
+      if (!data.session) {
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
         router.push("/login");
         return;
       }
+
+      const user = data.session.user;
 
       // Calculate results
       const vitalityScore = calculateVitalityScore();
       const flags = generateFlags();
       const badges = generateBadges();
 
-      // Save to Supabase (assuming a table exists)
-      const { error } = await supabase.from("onboarding_results").insert({
+      // Upsert profile: Create if not exists, update if exists
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: user.id,
+        email: user.email,
+        level: 1,
+        total_points: vitalityScore,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (profileError) {
+        console.error("Error upserting profile:", profileError);
+        toast.error("Erro ao salvar perfil");
+        return;
+      }
+
+      // Save quiz results to onboarding_results table
+      const { error: quizError } = await supabase.from("onboarding_results").insert({
         user_id: user.id,
         quiz_data: quizData,
         vitality_score: vitalityScore,
@@ -164,8 +181,8 @@ export default function QuizPage() {
         completed_at: new Date().toISOString(),
       });
 
-      if (error) {
-        console.error("Error saving quiz:", error);
+      if (quizError) {
+        console.error("Error saving quiz:", quizError);
         toast.error("Erro ao salvar questionário");
         return;
       }
