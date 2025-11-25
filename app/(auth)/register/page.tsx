@@ -102,6 +102,18 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
+        // Detect duplicate email via empty identities array
+        // When email already exists, Supabase returns a user with no identities
+        if (data.user.identities && data.user.identities.length === 0) {
+          toast.error("Este e-mail já está cadastrado. Faça login ou recupere sua senha.", {
+            style: {
+              background: "#DC2626",
+              color: "#FFFFFF",
+            },
+          });
+          return;
+        }
+
         // Check if email confirmation is required
         // If session exists, user is logged in automatically (no email confirmation required)
         if (data.session) {
