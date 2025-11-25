@@ -14,7 +14,7 @@ export default function LandingPage() {
               alt="HERO Logo" 
               width={32} 
               height={32} 
-              className="w-8 h-8 rounded-lg shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+              className="w-8 h-8"
             />
             <h1 className="font-black tracking-tighter text-xl text-transparent bg-clip-text bg-gradient-to-r from-[#00FF00] to-white/80 uppercase italic">
               HERO
