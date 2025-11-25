@@ -6,19 +6,15 @@ This document lists all environment variables that need to be configured in the 
 
 ---
 
-## 📋 Current Status: No Environment Variables Required
+## 📋 Current Status: Supabase Integration Active
 
-✅ **Good News!** The current build does not require any environment variables to deploy successfully.
-
-The application is currently frontend-only and does not integrate with any external services yet.
+⚠️ **Important!** Supabase authentication is now integrated. You need to configure the following environment variables for the app to work properly.
 
 ---
 
-## 🔮 Future Environment Variables (When Supabase Integration is Added)
+## 🔑 Required Environment Variables
 
-According to the README.md, when Supabase integration is implemented, you will need to add the following variables:
-
-### Required Variables:
+### Required Variables (Supabase):
 
 #### **Supabase Configuration**
 ```bash
@@ -29,11 +25,10 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-#### **Optional: Server-Side Supabase Configuration**
-```bash
-# Supabase Service Role Key (NEVER expose to client - server-side only)
-SUPABASE_SERVICE_ROLE_KEY=
-```
+These variables are **required** for authentication to work. Without them:
+- Login and Signup forms will show errors
+- Middleware will allow all requests (no auth protection)
+- Auth callback will redirect to login with error
 
 ---
 
@@ -53,15 +48,12 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 ## 🔍 How to Find Your Supabase Credentials
 
-When you set up Supabase integration:
-
-1. Go to your Supabase project dashboard
+1. Go to your Supabase project dashboard: https://supabase.com/dashboard
 2. Click on **Settings** (gear icon)
 3. Navigate to **API** section
 4. Copy the values:
    - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
    - **Project API keys** → `anon` `public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - **Project API keys** → `service_role` `secret` → `SUPABASE_SERVICE_ROLE_KEY` (if needed)
 
 ---
 
@@ -74,7 +66,7 @@ When you set up Supabase integration:
 These are designed to be exposed to the client-side and are protected by Supabase Row Level Security (RLS) policies.
 
 ### 🔒 NEVER Expose to Client
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (only add if needed for server-side operations)
 
 This key bypasses all RLS policies. Only use in server-side code (API routes, server components, edge functions).
 
@@ -88,10 +80,23 @@ Create a `.env.local` file in the root of your project (this file is gitignored)
 # .env.local (DO NOT COMMIT THIS FILE)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 ```
 
 Next.js will automatically load these variables during development.
+
+---
+
+## 🔄 Authentication Flow
+
+After setting up the environment variables, the authentication flow will work as follows:
+
+1. **Signup**: User creates account → Email verification sent → User clicks link → Callback route sets session cookie → User redirected to `/quiz`
+2. **Login**: User enters credentials → Session established → Router refreshed → User redirected to `/homepage`
+3. **Protected Routes**: Middleware checks session cookies → Redirects unauthenticated users to `/login`
+4. **Auth Routes**: Middleware checks session cookies → Redirects authenticated users to `/homepage`
+
+Protected routes: `/dashboard`, `/quiz`, `/homepage`
+Auth routes: `/login`, `/signup`
 
 ---
 
@@ -100,19 +105,21 @@ Next.js will automatically load these variables during development.
 - ✅ **TypeScript**: Strict mode enabled, no errors
 - ✅ **ESLint**: No linting errors
 - ✅ **Build**: Production build successful
-- ✅ **Environment Variables**: None required for current version
+- ⚠️ **Environment Variables**: Required for authentication
 - ✅ **PWA**: Manifest configured correctly
 
 ---
 
-## 🚀 Ready for Deployment
+## 🚀 Deployment Steps
 
-Your application is **ready to deploy to Vercel** as-is. No environment variables are needed for the current version.
-
-When you add Supabase integration later, return to this document and configure the environment variables listed in the "Future" section above.
+1. Configure environment variables in Vercel (see above)
+2. Deploy application
+3. Configure Supabase redirect URLs in Supabase dashboard:
+   - Add `https://your-domain.vercel.app/auth/callback` to allowed redirect URLs
+   - Add your custom domain if applicable
 
 ---
 
 **Last Updated**: November 2024  
 **Project**: HERO - Plataforma de Otimização Masculina  
-**Stack**: Next.js 16 + TypeScript + Tailwind CSS
+**Stack**: Next.js 16 + TypeScript + Tailwind CSS + Supabase SSR Auth
