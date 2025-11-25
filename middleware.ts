@@ -17,7 +17,6 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({
             request,
           })
@@ -45,7 +44,7 @@ export async function middleware(request: NextRequest) {
 
   // Se já está logado, não deixa acessar login/register
   if (['/login', '/register'].includes(request.nextUrl.pathname) && user) {
-     return NextResponse.redirect(new URL('/homepage', request.url))
+    return NextResponse.redirect(new URL('/homepage', request.url))
   }
 
   return response
