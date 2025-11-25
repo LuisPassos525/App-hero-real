@@ -160,11 +160,11 @@ export default function QuizPage() {
       // Upsert profile: Create if not exists, update if exists
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
-        email: user.email,
+        email: user.email ?? undefined,
         level: INITIAL_USER_LEVEL,
         total_points: vitalityScore,
         updated_at: new Date().toISOString(),
-      });
+      }, { onConflict: 'id' });
 
       if (profileError) {
         console.error("Error upserting profile:", profileError);
