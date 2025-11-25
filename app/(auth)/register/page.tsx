@@ -74,7 +74,7 @@ export default function RegisterPage() {
           data: {
             name: formData.name,
           },
-          emailRedirectTo: `${window.location.origin}/callback?next=/quiz`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/quiz`,
         },
       });
 

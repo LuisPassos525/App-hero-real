@@ -171,7 +171,7 @@ export default function QuizPage() {
       }
 
       toast.success("Questionário concluído com sucesso!");
-      router.push("/homepage");
+      router.push("/plans");
     } catch (error) {
       console.error("Quiz submission error:", error);
       toast.error("Erro ao processar questionário");
