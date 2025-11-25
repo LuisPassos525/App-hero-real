@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +11,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Listen for auth state changes to handle successful login
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        router.refresh();
+        router.push("/homepage");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,16 +43,10 @@ export default function LoginPage() {
         return;
       }
 
-      // Refresh router cache to update session state
-      router.refresh();
-
-      // Wait for session to propagate before redirecting
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      router.push("/homepage");
+      // The onAuthStateChange listener will handle the redirect
+      // Keep loading state until redirect happens
     } catch {
       setError("Erro ao fazer login. Tente novamente.");
-    } finally {
       setLoading(false);
     }
   };

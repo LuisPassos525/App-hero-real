@@ -39,12 +39,19 @@ export default function SignupPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message);
+        // Check for user already registered error
+        if (signUpError.message.toLowerCase().includes('already registered') ||
+            signUpError.message.toLowerCase().includes('já cadastrado')) {
+          setError("Este email já está cadastrado. Faça login ou recupere sua senha.");
+        } else {
+          setError(signUpError.message);
+        }
         setLoading(false);
         return;
       }
 
       // Check for duplicate email (user exists but no identity created)
+      // This happens when Supabase is configured to not throw errors on duplicate signups
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         setError("Este email já está cadastrado. Faça login ou recupere sua senha.");
         setLoading(false);
