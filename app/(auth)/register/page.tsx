@@ -103,7 +103,9 @@ export default function RegisterPage() {
 
       if (data.user) {
         // Detect duplicate email via empty identities array
-        // When email already exists, Supabase returns a user with no identities
+        // When email confirmation is enabled and email already exists, Supabase returns
+        // a user object with an empty identities array instead of an error.
+        // This is different from the error handling above which catches explicit errors.
         if (data.user.identities && data.user.identities.length === 0) {
           toast.error("Este e-mail já está cadastrado. Faça login ou recupere sua senha.", {
             style: {
