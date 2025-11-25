@@ -19,6 +19,10 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+// Delay in milliseconds to wait after router.refresh() before navigation.
+// This ensures Supabase session cookies are properly synchronized with Next.js server.
+const AUTH_COOKIE_SETTLE_DELAY_MS = 1000;
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -66,14 +70,18 @@ export default function LoginPage() {
       });
 
       if (error) {
+        // Tratamento específico para e-mail não confirmado
+        if (error.message.includes("Email not confirmed")) {
+          toast.warning("Verifique seu e-mail para ativar a conta antes de entrar.");
+          return;
+        }
+        
         // Don't redirect on error, show toast instead
         let errorMessage = "Credenciais inválidas. Verifique seu email e senha.";
         
         // Provide more specific error messages
         if (error.message.includes("Invalid login credentials")) {
           errorMessage = "Email ou senha incorretos. Verifique suas credenciais.";
-        } else if (error.message.includes("Email not confirmed")) {
-          errorMessage = "Email não confirmado. Verifique sua caixa de entrada.";
         } else if (error.message.includes("User not found")) {
           errorMessage = "Usuário não encontrado. Crie uma conta primeiro.";
         }
@@ -89,9 +97,27 @@ export default function LoginPage() {
 
       if (data.user) {
         toast.success("Login realizado com sucesso!");
-        // Force refresh to update server-side cookies before redirect
+        
+        // Refresh router to sync session cookies with Next.js server
         router.refresh();
-        router.push("/homepage");
+        
+        // Wait for cookies to settle before proceeding
+        await new Promise(r => setTimeout(r, AUTH_COOKIE_SETTLE_DELAY_MS));
+        
+        // Intelligent redirect: check if user has completed the onboarding quiz
+        const { data: quizResult } = await supabase
+          .from("onboarding_results")
+          .select("vitality_score")
+          .eq("user_id", data.user.id)
+          .single();
+        
+        if (quizResult && quizResult.vitality_score > 0) {
+          // User already completed quiz -> redirect to homepage
+          router.push("/homepage");
+        } else {
+          // New user or user who hasn't completed quiz -> redirect to quiz
+          router.push("/quiz");
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
