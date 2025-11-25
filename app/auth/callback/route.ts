@@ -4,8 +4,8 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  // Se houver um parâmetro 'next', redirecionamos para lá depois. 
-  // Caso contrário, vai para a homepage.
+  // If there's a 'next' parameter, redirect there after auth.
+  // Otherwise, fallback to homepage.
   const next = searchParams.get('next') ?? '/homepage';
 
   if (code) {
@@ -21,6 +21,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // Se der erro ou não tiver código, volta pro login com aviso
+  // If there's an error or no code, redirect to login with error
   return NextResponse.redirect(`${origin}/login?error=auth_code_error`);
 }

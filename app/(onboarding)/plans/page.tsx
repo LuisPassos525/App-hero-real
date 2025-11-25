@@ -76,13 +76,13 @@ export default function PlansPage() {
     setSelectedPlan(planId);
     setLoading(true);
 
-    // Simula processamento (lógica de pagamento futura)
+    // Simulate processing (payment integration to be added)
     await new Promise((r) => setTimeout(r, 500));
 
     const planName = plans.find((p) => p.id === planId)?.name;
     toast.success(`Plano ${planName} selecionado!`);
 
-    // Por enquanto, redireciona para homepage
+    // Redirect to homepage (payment logic to be implemented)
     router.push("/homepage");
     setLoading(false);
   };

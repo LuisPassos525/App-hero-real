@@ -19,6 +19,10 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+// Delay in milliseconds to wait after router.refresh() before navigation.
+// This ensures Supabase session cookies are properly synchronized with Next.js server.
+const AUTH_COOKIE_SETTLE_DELAY_MS = 1000;
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -94,15 +98,13 @@ export default function LoginPage() {
       if (data.user) {
         toast.success("Login realizado com sucesso!");
         
-        // TRUQUE DO NEXT.JS + SUPABASE:
-        // 1. Atualiza a rota para garantir que o middleware pegue o novo cookie
+        // Refresh router to sync session cookies with Next.js server
         router.refresh();
         
-        // 2. Aguarda o cookie assentar (1 segundo obrigatório)
-        await new Promise(r => setTimeout(r, 1000));
+        // Wait for cookies to settle before proceeding
+        await new Promise(r => setTimeout(r, AUTH_COOKIE_SETTLE_DELAY_MS));
         
-        // 3. Lógica de Redirecionamento Inteligente:
-        // Consulta a tabela onboarding_results para ver se o usuário já fez o quiz
+        // Intelligent redirect: check if user has completed the onboarding quiz
         const { data: quizResult } = await supabase
           .from("onboarding_results")
           .select("vitality_score")
@@ -110,10 +112,10 @@ export default function LoginPage() {
           .single();
         
         if (quizResult && quizResult.vitality_score > 0) {
-          // Usuário já fez o quiz -> vai para homepage
+          // User already completed quiz -> redirect to homepage
           router.push("/homepage");
         } else {
-          // Usuário novo ou que não completou o quiz -> vai para o quiz
+          // New user or user who hasn't completed quiz -> redirect to quiz
           router.push("/quiz");
         }
       }
