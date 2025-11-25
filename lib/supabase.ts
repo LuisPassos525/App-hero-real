@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 // Get environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -18,4 +18,4 @@ if (typeof window !== "undefined") {
   }
 }
 
-export const supabase = createClient(url, key);
+export const supabase = createBrowserClient(url, key);
