@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins, Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -40,6 +41,17 @@ export default function RootLayout({
         className={`${poppins.variable} ${inter.variable} antialiased min-h-screen`}
       >
         {children}
+        <Toaster 
+          position="top-center"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: '#1A1A1A',
+              color: '#FFFFFF',
+              border: '1px solid rgba(0, 255, 0, 0.2)',
+            },
+          }}
+        />
       </body>
     </html>
   );
