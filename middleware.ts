@@ -55,10 +55,9 @@ export async function middleware(request: NextRequest) {
   // If user is logged in
   if (user) {
     // Query the user's profile once for all subsequent checks
-    // Include total_points as a fallback check for quiz completion
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('total_points, onboarding_completed, has_active_plan')
+      .select('onboarding_completed, has_active_plan')
       .eq('id', user.id)
       .single()
 
@@ -70,9 +69,7 @@ export async function middleware(request: NextRequest) {
 
     // Determine user state based on schema fields
     // Profile might not exist for new users - treat as no quiz done
-    // Check both onboarding_completed flag AND total_points > 0 as fallback
-    const hasCompletedQuiz = profile?.onboarding_completed === true || 
-      (profile?.total_points ?? 0) > 0
+    const hasCompletedQuiz = profile?.onboarding_completed === true
     const hasActivePlan = profile?.has_active_plan === true
 
     // Redirect authenticated users away from login/register
@@ -86,25 +83,38 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // For protected routes, enforce the state machine
+    // For protected routes, enforce the STATE MACHINE with reverse blocking
     if (!isPublic) {
-      // State Machine Logic:
-      // 1. No quiz completed (onboarding_completed=false AND total_points=0) -> can only access /quiz
-      // 2. Quiz done but no plan -> can access /quiz (already done) and /plans
-      // 3. Quiz done + plan active -> can access everything
-
+      // ==========================================
+      // STATE MACHINE - 3 States with Reverse Blocking
+      // ==========================================
+      
+      // STATE 1: New User (onboarding_completed = false)
+      // - Allowed: /quiz only
+      // - Blocked: /plans, /homepage → redirect to /quiz
       if (!hasCompletedQuiz) {
-        // User hasn't completed quiz - only allow /quiz
         if (pathname !== '/quiz') {
           return NextResponse.redirect(new URL('/quiz', request.url))
         }
-      } else if (!hasActivePlan) {
-        // User completed quiz but no active plan - allow /quiz and /plans only
-        if (pathname !== '/quiz' && pathname !== '/plans') {
+      }
+      
+      // STATE 2: Quiz Done, No Plan (onboarding_completed = true, has_active_plan = false)
+      // - Allowed: /plans only
+      // - Blocked: /quiz (can't go back), /homepage → redirect to /plans
+      else if (!hasActivePlan) {
+        if (pathname !== '/plans') {
           return NextResponse.redirect(new URL('/plans', request.url))
         }
       }
-      // If hasCompletedQuiz && hasActivePlan, allow access to any protected route
+      
+      // STATE 3: Active Member (onboarding_completed = true, has_active_plan = true)
+      // - Allowed: /homepage, /dashboard, etc.
+      // - Blocked: /quiz, /plans (can't go back) → redirect to /homepage
+      else {
+        if (pathname === '/quiz' || pathname === '/plans') {
+          return NextResponse.redirect(new URL('/homepage', request.url))
+        }
+      }
     }
   }
 

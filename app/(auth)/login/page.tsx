@@ -104,19 +104,24 @@ export default function LoginPage() {
         // Wait for cookies to settle before proceeding
         await new Promise(r => setTimeout(r, AUTH_COOKIE_SETTLE_DELAY_MS));
         
-        // Intelligent redirect: check if user has completed the onboarding quiz
-        const { data: quizResult } = await supabase
-          .from("onboarding_results")
-          .select("vitality_score")
-          .eq("user_id", data.user.id)
+        // Intelligent redirect based on user profile state (3-state machine)
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed, has_active_plan")
+          .eq("id", data.user.id)
           .single();
         
-        if (quizResult && quizResult.vitality_score > 0) {
-          // User already completed quiz -> redirect to homepage
-          router.push("/homepage");
-        } else {
-          // New user or user who hasn't completed quiz -> redirect to quiz
+        // STATE 1: New User - hasn't completed quiz
+        if (!profile?.onboarding_completed) {
           router.push("/quiz");
+        }
+        // STATE 2: Quiz done but no active plan
+        else if (!profile?.has_active_plan) {
+          router.push("/plans");
+        }
+        // STATE 3: Active member - full access
+        else {
+          router.push("/homepage");
         }
       }
     } catch (error) {

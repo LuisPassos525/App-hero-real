@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, Sparkles, Crown, Star } from "lucide-react";
 
-type PlanType = "monthly" | "quarterly" | "annual";
+type PlanType = "starter" | "quarterly" | "elite";
 
 interface Plan {
   id: PlanType;
@@ -18,15 +18,17 @@ interface Plan {
   features: string[];
   badge?: string;
   recommended?: boolean;
+  tier: string; // The plan_tier value to save in DB
 }
 
 const plans: Plan[] = [
   {
-    id: "monthly",
+    id: "starter",
     name: "Iniciante",
     title: "Mensal",
     price: "R$ 47",
     priceDescription: "/mês",
+    tier: "starter",
     features: [
       "Acesso completo ao protocolo",
       "Treinos personalizados",
@@ -40,6 +42,7 @@ const plans: Plan[] = [
     title: "Trimestral",
     price: "R$ 37",
     priceDescription: "/mês",
+    tier: "quarterly",
     features: [
       "Tudo do plano Mensal",
       "3 meses de acesso",
@@ -51,11 +54,12 @@ const plans: Plan[] = [
     recommended: true,
   },
   {
-    id: "annual",
+    id: "elite",
     name: "Elite",
     title: "Anual",
     price: "R$ 27",
     priceDescription: "/mês",
+    tier: "elite",
     features: [
       "Tudo do plano Trimestral",
       "12 meses de acesso",
@@ -73,7 +77,7 @@ export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("quarterly");
   const [loading, setLoading] = useState(false);
 
-  const handleSelectPlan = async (planId: PlanType) => {
+  const handleSelectPlan = async (planId: PlanType, tier: string) => {
     setSelectedPlan(planId);
     setLoading(true);
 
@@ -90,12 +94,13 @@ export default function PlansPage() {
 
       const user = sessionData.session.user;
 
-      // Update profile with has_active_plan = true
+      // Update profile with has_active_plan = true and plan_tier
       // In a real app, this would happen after payment confirmation
       const { error } = await supabase
         .from("profiles")
         .update({ 
           has_active_plan: true,
+          plan_tier: tier,
           updated_at: new Date().toISOString()
         })
         .eq("id", user.id);
@@ -211,7 +216,7 @@ export default function PlansPage() {
 
               {/* CTA Button */}
               <Button
-                onClick={() => handleSelectPlan(plan.id)}
+                onClick={() => handleSelectPlan(plan.id, plan.tier)}
                 disabled={loading}
                 className={`w-full py-6 rounded-xl font-bold transition-all ${
                   plan.recommended
