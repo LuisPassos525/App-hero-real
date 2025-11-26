@@ -166,13 +166,16 @@ export default function QuizPage() {
       const badges = generateBadges();
 
       // Profile payload matching exact database schema columns
+      // Including quiz_data JSONB and updated_at timestamp
       const profilePayload = {
         id: user.id,
         email: user.email || null,
         name: quizData.name || null,
         level: INITIAL_USER_LEVEL,
         total_points: vitalityScore,
+        quiz_data: quizData, // Store quiz answers as JSONB
         onboarding_completed: true,
+        updated_at: new Date().toISOString(),
       };
 
       console.log("Upserting profile with payload:", profilePayload);
