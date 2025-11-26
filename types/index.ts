@@ -2,10 +2,12 @@
 export interface User {
   id: string;
   username: string;
+  email?: string;
   avatar_url?: string;
   level: number;
   total_points: number;
   current_streak: number;
+  has_active_plan?: boolean;
   settings?: UserSettings;
   created_at: string;
   updated_at: string;

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, Sparkles, Crown, Star } from "lucide-react";
@@ -76,15 +77,46 @@ export default function PlansPage() {
     setSelectedPlan(planId);
     setLoading(true);
 
-    // Simulate processing (payment integration to be added)
-    await new Promise((r) => setTimeout(r, 500));
+    try {
+      // Get the current user session
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        setLoading(false);
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        router.push("/login");
+        return;
+      }
 
-    const planName = plans.find((p) => p.id === planId)?.name;
-    toast.success(`Plano ${planName} selecionado!`);
+      const user = sessionData.session.user;
 
-    // Redirect to homepage (payment logic to be implemented)
-    router.push("/homepage");
-    setLoading(false);
+      // Update profile with has_active_plan = true
+      // In a real app, this would happen after payment confirmation
+      const { error } = await supabase
+        .from("profiles")
+        .update({ 
+          has_active_plan: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("Error updating plan:", error);
+        toast.error("Erro ao ativar plano. Tente novamente.");
+        return;
+      }
+
+      const planName = plans.find((p) => p.id === planId)?.name;
+      toast.success(`Plano ${planName} ativado com sucesso!`);
+
+      // Redirect to homepage
+      router.push("/homepage");
+    } catch (error) {
+      console.error("Plan selection error:", error);
+      toast.error("Erro ao processar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
