@@ -1,26 +1,26 @@
 -- =====================================================
--- HERO PWA - RLS Policies for Onboarding Flow
+-- HERO PWA - RLS Policies (Incremental Update)
 -- =====================================================
 -- 
--- IMPORTANT: Run this SQL in your Supabase SQL Editor
--- Go to: Supabase Dashboard > SQL Editor > New Query
--- Paste this entire script and click "Run"
+-- ⚠️ NOTE: For a FRESH database setup, use:
+--    000_complete_database_schema.sql
 --
+-- This file is for incremental RLS policy updates only.
+-- If you need to drop everything and start fresh, use
+-- the complete schema file instead.
 -- =====================================================
--- SUPABASE CONFIGURATION CHECKLIST (Do this FIRST!)
+
+-- =====================================================
+-- SUPABASE CONFIGURATION CHECKLIST
 -- =====================================================
 -- 1. Go to: Authentication > URL Configuration
--- 2. Add these URLs to "Redirect URLs" (one per line):
+-- 2. Add these URLs to "Redirect URLs":
 --    - http://localhost:3000/auth/callback
 --    - http://localhost:3000/auth/callback?next=/quiz
 --    - https://your-production-domain.com/auth/callback
 --    - https://your-production-domain.com/auth/callback?next=/quiz
 -- 
--- 3. Make sure "Site URL" is set to your production URL
---    (or http://localhost:3000 for local development)
---
--- 4. In Email Templates, verify the confirmation email uses
---    {{ .ConfirmationURL }} which includes your redirect URL
+-- 3. Set "Site URL" to your production URL
 -- =====================================================
 
 -- The profiles table schema already exists:
