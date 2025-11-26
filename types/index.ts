@@ -1,16 +1,18 @@
-// User Profile Interface
+// User Profile Interface - Matches profiles table schema
 export interface User {
   id: string;
   username: string;
   email?: string;
+  name?: string;
   avatar_url?: string;
   level: number;
   total_points: number;
   current_streak: number;
   has_active_plan?: boolean;
+  onboarding_completed?: boolean;
   settings?: UserSettings;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface UserSettings {

@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
     // Query the user's profile once for all subsequent checks
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('total_points, has_active_plan')
+      .select('onboarding_completed, has_active_plan')
       .eq('id', user.id)
       .single()
 
@@ -67,9 +67,9 @@ export async function middleware(request: NextRequest) {
       console.error('Error fetching profile:', profileError)
     }
 
-    // Determine user state
+    // Determine user state based on actual schema fields
     // Profile might not exist for new users - treat as no quiz done
-    const hasCompletedQuiz = profile && profile.total_points !== null && profile.total_points > 0
+    const hasCompletedQuiz = profile?.onboarding_completed === true
     const hasActivePlan = profile?.has_active_plan === true
 
     // Redirect authenticated users away from login/register

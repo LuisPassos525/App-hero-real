@@ -158,12 +158,13 @@ export default function QuizPage() {
       const badges = generateBadges();
 
       // Upsert profile: Create if not exists, update if exists
+      // Set onboarding_completed = true to mark quiz as done
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email ?? undefined,
         level: INITIAL_USER_LEVEL,
         total_points: vitalityScore,
-        updated_at: new Date().toISOString(),
+        onboarding_completed: true,
       }, { onConflict: 'id' });
 
       if (profileError) {

@@ -1,34 +1,37 @@
 -- =====================================================
--- HERO PWA - Profiles Table Schema and RLS Policies
+-- HERO PWA - RLS Policies for Onboarding Flow
 -- =====================================================
--- This migration ensures the profiles table has the correct
--- schema and RLS policies for the onboarding flow.
+-- This migration sets up the RLS policies needed for the
+-- onboarding flow. The profiles table schema already exists:
+--
+-- CREATE TABLE public.profiles (
+--   id uuid NOT NULL,
+--   email text,
+--   name text,
+--   avatar_url text,
+--   level integer DEFAULT 1,
+--   current_streak integer DEFAULT 0,
+--   total_points integer DEFAULT 0,
+--   has_active_plan boolean DEFAULT false,
+--   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+--   onboarding_completed boolean DEFAULT false,
+--   CONSTRAINT profiles_pkey PRIMARY KEY (id),
+--   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+-- );
 --
 -- Run this in your Supabase SQL Editor or via CLI:
 -- supabase db push
 -- =====================================================
 
--- Step 1: Add has_active_plan column if it doesn't exist
--- This column tracks whether user has an active subscription
-DO $$ 
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'profiles' AND column_name = 'has_active_plan'
-  ) THEN
-    ALTER TABLE profiles ADD COLUMN has_active_plan BOOLEAN DEFAULT false;
-  END IF;
-END $$;
-
--- Step 2: Drop existing policies if they exist (to avoid conflicts)
+-- Step 1: Drop existing policies if they exist (to avoid conflicts)
 DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 
--- Step 3: Enable RLS on profiles table
+-- Step 2: Enable RLS on profiles table
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Step 4: Create RLS Policies
+-- Step 3: Create RLS Policies for profiles
 
 -- Allow users to view their own profile
 CREATE POLICY "Users can view their own profile"
@@ -77,8 +80,9 @@ CREATE POLICY "Users can insert their own onboarding results"
   ON onboarding_results FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
--- Create index for faster lookups
+-- Create indexes for faster lookups
 CREATE INDEX IF NOT EXISTS idx_onboarding_results_user_id ON onboarding_results(user_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_onboarding_completed ON profiles(onboarding_completed);
 CREATE INDEX IF NOT EXISTS idx_profiles_has_active_plan ON profiles(has_active_plan);
 
 -- =====================================================
