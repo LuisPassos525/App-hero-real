@@ -4,12 +4,21 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = ['/', '/login', '/register', '/forgot-password', '/auth/callback']
 
+// Special routes that require authentication but bypass onboarding state machine
+// (e.g., password reset after clicking email link)
+const AUTH_BYPASS_ROUTES = ['/update-password']
+
 // Supabase error code for "row not found" in single() query
 const PROFILE_NOT_FOUND_ERROR = 'PGRST116'
 
 // Helper function to check if a route is public
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some(route => pathname === route) || pathname.startsWith('/auth/')
+}
+
+// Helper function to check if route bypasses onboarding state machine
+function isAuthBypassRoute(pathname: string): boolean {
+  return AUTH_BYPASS_ROUTES.includes(pathname)
 }
 
 export async function middleware(request: NextRequest) {
@@ -84,7 +93,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // For protected routes, enforce the STATE MACHINE with reverse blocking
-    if (!isPublic) {
+    // BUT skip the state machine for auth bypass routes (like /update-password)
+    if (!isPublic && !isAuthBypassRoute(pathname)) {
       // ==========================================
       // STATE MACHINE - 3 States with Reverse Blocking
       // ==========================================
