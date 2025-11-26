@@ -55,9 +55,10 @@ export async function middleware(request: NextRequest) {
   // If user is logged in
   if (user) {
     // Query the user's profile once for all subsequent checks
+    // Include total_points as a fallback check for quiz completion
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('onboarding_completed, has_active_plan')
+      .select('total_points, onboarding_completed, has_active_plan')
       .eq('id', user.id)
       .single()
 
@@ -67,9 +68,11 @@ export async function middleware(request: NextRequest) {
       console.error('Error fetching profile:', profileError)
     }
 
-    // Determine user state based on actual schema fields
+    // Determine user state based on schema fields
     // Profile might not exist for new users - treat as no quiz done
-    const hasCompletedQuiz = profile?.onboarding_completed === true
+    // Check both onboarding_completed flag AND total_points > 0 as fallback
+    const hasCompletedQuiz = profile?.onboarding_completed === true || 
+      (profile?.total_points ?? 0) > 0
     const hasActivePlan = profile?.has_active_plan === true
 
     // Redirect authenticated users away from login/register
@@ -86,7 +89,7 @@ export async function middleware(request: NextRequest) {
     // For protected routes, enforce the state machine
     if (!isPublic) {
       // State Machine Logic:
-      // 1. No quiz completed -> can only access /quiz
+      // 1. No quiz completed (onboarding_completed=false AND total_points=0) -> can only access /quiz
       // 2. Quiz done but no plan -> can access /quiz (already done) and /plans
       // 3. Quiz done + plan active -> can access everything
 

@@ -142,9 +142,17 @@ export default function QuizPage() {
 
     try {
       // Session validation: Check if session exists
-      const { data } = await supabase.auth.getSession();
+      const { data, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        toast.error("Erro de sessão. Por favor, faça login novamente.");
+        router.push("/login");
+        return;
+      }
 
       if (!data.session) {
+        console.error("No session found");
         toast.error("Sessão expirada. Por favor, faça login novamente.");
         router.push("/login");
         return;
@@ -157,37 +165,68 @@ export default function QuizPage() {
       const flags = generateFlags();
       const badges = generateBadges();
 
-      // Upsert profile: Create if not exists, update if exists
-      // Set onboarding_completed = true to mark quiz as done
-      const { error: profileError } = await supabase.from("profiles").upsert({
+      // Profile payload matching exact database schema columns
+      const profilePayload = {
         id: user.id,
-        email: user.email ?? undefined,
+        email: user.email || null,
+        name: quizData.name || null,
         level: INITIAL_USER_LEVEL,
         total_points: vitalityScore,
         onboarding_completed: true,
-      }, { onConflict: 'id' });
+      };
+
+      console.log("Upserting profile with payload:", profilePayload);
+
+      // Upsert profile: Create if not exists, update if exists
+      // Set onboarding_completed = true to mark quiz as done
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .upsert(profilePayload, { onConflict: 'id' })
+        .select();
 
       if (profileError) {
-        console.error("Error upserting profile:", profileError);
-        toast.error("Erro ao salvar perfil");
+        console.error("Profile upsert error details:", {
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint,
+          code: profileError.code,
+        });
+        toast.error(`Erro ao salvar perfil: ${profileError.message}`);
         return;
       }
 
-      // Save quiz results to onboarding_results table
-      const { error: quizError } = await supabase.from("onboarding_results").insert({
+      console.log("Profile upserted successfully:", profileData);
+
+      // Quiz results payload for onboarding_results table
+      const quizResultsPayload = {
         user_id: user.id,
         quiz_data: quizData,
         vitality_score: vitalityScore,
         flags,
         badges,
         completed_at: new Date().toISOString(),
-      });
+      };
+
+      console.log("Inserting quiz results with payload:", quizResultsPayload);
+
+      // Save quiz results to onboarding_results table
+      const { data: quizResultData, error: quizError } = await supabase
+        .from("onboarding_results")
+        .insert(quizResultsPayload)
+        .select();
 
       if (quizError) {
-        console.error("Error saving quiz:", quizError);
-        toast.error("Erro ao salvar questionário");
+        console.error("Quiz insert error details:", {
+          message: quizError.message,
+          details: quizError.details,
+          hint: quizError.hint,
+          code: quizError.code,
+        });
+        toast.error(`Erro ao salvar questionário: ${quizError.message}`);
         return;
       }
+
+      console.log("Quiz results saved successfully:", quizResultData);
 
       toast.success("Questionário concluído com sucesso!");
       router.push("/plans");
