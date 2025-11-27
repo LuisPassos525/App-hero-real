@@ -175,7 +175,6 @@ export default function QuizPage() {
         total_points: vitalityScore,
         quiz_data: quizData, // Store quiz answers as JSONB
         onboarding_completed: true,
-        updated_at: new Date().toISOString(),
       };
 
       console.log("Upserting profile with payload:", profilePayload);
