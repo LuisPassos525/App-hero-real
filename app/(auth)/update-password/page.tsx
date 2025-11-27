@@ -35,7 +35,7 @@ export default function UpdatePasswordPage() {
   });
   const [errors, setErrors] = useState<Partial<Record<keyof UpdatePasswordForm, string>>>({});
 
-  // Check if user has a valid session (from magic link)
+  // Check if user has a valid password recovery session (from email link)
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -50,6 +50,49 @@ export default function UpdatePasswordPage() {
         });
         router.push("/forgot-password");
         return;
+      }
+      
+      // Check if this is a password recovery session by looking at the AMR claims
+      // Supabase sets 'recovery' in the AMR when user clicks password reset link
+      // AMR is stored in the session's access token claims
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const accessToken = session.access_token;
+      let isRecoverySession = false;
+      
+      if (accessToken) {
+        try {
+          // Decode JWT to get AMR claims (base64 decode the payload)
+          const payload = accessToken.split('.')[1];
+          const decodedPayload = JSON.parse(atob(payload));
+          const amr = decodedPayload?.amr;
+          isRecoverySession = Array.isArray(amr) && amr.some(
+            (claim: { method?: string } | string) => 
+              (typeof claim === 'object' && claim?.method === 'recovery') ||
+              claim === 'recovery'
+          );
+        } catch {
+          // If JWT decode fails, treat as non-recovery session
+          console.warn("Could not decode access token for AMR check");
+        }
+      }
+      
+      // If it's not a recovery session, the user must still be authenticated
+      if (!session.user) {
+        toast.error("Sessão inválida. Solicite um novo link de recuperação.", {
+          style: {
+            background: "#DC2626",
+            color: "#FFFFFF",
+          },
+        });
+        router.push("/forgot-password");
+        return;
+      }
+      
+      // Log session type for debugging
+      if (!isRecoverySession) {
+        // User is logged in but this isn't from a recovery link
+        // This is fine - authenticated users can still change their password
+        console.info("Password update: User is authenticated but not via recovery link");
       }
       
       setCheckingSession(false);
