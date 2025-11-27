@@ -83,8 +83,14 @@ export default function PlansPage() {
 
     try {
       // Get the current user session
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
+      console.log('[plans] Session check:', { 
+        hasSession: !!sessionData.session, 
+        userId: sessionData.session?.user?.id,
+        sessionError: sessionError?.message 
+      });
+
       if (!sessionData.session) {
         setLoading(false);
         toast.error("Sessão expirada. Por favor, faça login novamente.");
@@ -93,6 +99,8 @@ export default function PlansPage() {
       }
 
       const user = sessionData.session.user;
+
+      console.log('[plans] Calling activate-plan API with:', { planId, tier, userId: user.id });
 
       // Call secure server-side API to activate plan after payment confirmation
       // This endpoint should verify payment before updating the database
@@ -109,10 +117,12 @@ export default function PlansPage() {
         }),
       });
 
+      const responseData = await response.json();
+      console.log('[plans] API response:', { status: response.status, ok: response.ok, data: responseData });
+
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error activating plan:", errorData);
-        toast.error("Erro ao ativar plano. Tente novamente.");
+        console.error("[plans] Error activating plan:", responseData);
+        toast.error(responseData.error || "Erro ao ativar plano. Tente novamente.");
         setLoading(false);
         return;
       }
@@ -120,10 +130,11 @@ export default function PlansPage() {
       const planName = plans.find((p) => p.id === planId)?.name;
       toast.success(`Plano ${planName} ativado com sucesso!`);
 
-      // Redirect to homepage
+      // Refresh and redirect to homepage
+      router.refresh();
       router.push("/homepage");
     } catch (error) {
-      console.error("Plan selection error:", error);
+      console.error("[plans] Plan selection error:", error);
       toast.error("Erro ao processar. Tente novamente.");
     } finally {
       setLoading(false);
