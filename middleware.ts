@@ -71,15 +71,18 @@ export async function middleware(request: NextRequest) {
       .single()
 
     // If there's an error fetching the profile (other than not found), 
-    // allow access but treat as no quiz done
+    // redirect to error page for critical database issues
     if (profileError && profileError.code !== PROFILE_NOT_FOUND_ERROR) {
       console.error('Error fetching profile:', profileError)
+      return NextResponse.redirect(new URL('/error', request.url))
     }
 
     // Determine user state based on schema fields
-    // Profile might not exist for new users - treat as no quiz done
-    const hasCompletedQuiz = profile?.onboarding_completed === true
-    const hasActivePlan = profile?.has_active_plan === true
+    // New user = profile not found (PGRST116 error)
+    // Existing user with incomplete data = profile exists but onboarding_completed is false
+    const isNewUser = profileError?.code === PROFILE_NOT_FOUND_ERROR
+    const hasCompletedQuiz = !isNewUser && profile?.onboarding_completed === true
+    const hasActivePlan = !isNewUser && profile?.has_active_plan === true
 
     // Redirect authenticated users away from login/register
     if (['/login', '/register'].includes(pathname)) {

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, Sparkles, Crown, Star } from "lucide-react";
 
-type PlanType = "starter" | "quarterly" | "elite";
+type PlanType = "monthly" | "quarterly" | "annual";
 
 interface Plan {
   id: PlanType;
@@ -18,17 +18,17 @@ interface Plan {
   features: string[];
   badge?: string;
   recommended?: boolean;
-  tier: string; // The plan_tier value to save in DB
+  tier: PlanType; // The plan_tier value to save in DB (uses same type for consistency)
 }
 
 const plans: Plan[] = [
   {
-    id: "starter",
+    id: "monthly",
     name: "Iniciante",
     title: "Mensal",
     price: "R$ 47",
     priceDescription: "/mês",
-    tier: "starter",
+    tier: "monthly",
     features: [
       "Acesso completo ao protocolo",
       "Treinos personalizados",
@@ -54,12 +54,12 @@ const plans: Plan[] = [
     recommended: true,
   },
   {
-    id: "elite",
+    id: "annual",
     name: "Elite",
     title: "Anual",
     price: "R$ 27",
     priceDescription: "/mês",
-    tier: "elite",
+    tier: "annual",
     features: [
       "Tudo do plano Trimestral",
       "12 meses de acesso",
@@ -94,20 +94,26 @@ export default function PlansPage() {
 
       const user = sessionData.session.user;
 
-      // Update profile with has_active_plan = true and plan_tier
-      // In a real app, this would happen after payment confirmation
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          has_active_plan: true,
-          plan_tier: tier,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", user.id);
+      // Call secure server-side API to activate plan after payment confirmation
+      // This endpoint should verify payment before updating the database
+      const response = await fetch("/api/activate-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          planId,
+          tier,
+          userId: user.id,
+          // Optionally include payment confirmation data here
+        }),
+      });
 
-      if (error) {
-        console.error("Error updating plan:", error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error activating plan:", errorData);
         toast.error("Erro ao ativar plano. Tente novamente.");
+        setLoading(false);
         return;
       }
 

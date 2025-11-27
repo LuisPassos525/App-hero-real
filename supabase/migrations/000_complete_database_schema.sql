@@ -58,7 +58,8 @@ CREATE TABLE public.profiles (
   
   -- Subscription/Plan
   has_active_plan BOOLEAN DEFAULT FALSE,
-  plan_tier TEXT DEFAULT 'free', -- 'free', 'monthly', 'quarterly', 'annual'
+  plan_tier TEXT DEFAULT 'free', -- Valid values: 'free', 'monthly', 'quarterly', 'annual'
+  CONSTRAINT plan_tier_valid CHECK (plan_tier IN ('free', 'monthly', 'quarterly', 'annual')),
   plan_expires_at TIMESTAMPTZ,
   
   -- Onboarding

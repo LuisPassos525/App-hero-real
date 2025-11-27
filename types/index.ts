@@ -12,7 +12,7 @@ export interface User {
   onboarding_completed?: boolean;
   settings?: UserSettings;
   created_at: string;
-  updated_at?: string;
+  updated_at: string;
 }
 
 export interface UserSettings {

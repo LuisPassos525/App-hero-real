@@ -105,11 +105,22 @@ export default function LoginPage() {
         await new Promise(r => setTimeout(r, AUTH_COOKIE_SETTLE_DELAY_MS));
         
         // Intelligent redirect based on user profile state (3-state machine)
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("onboarding_completed, has_active_plan")
           .eq("id", data.user.id)
           .single();
+        
+        // Handle profile query errors gracefully
+        if (profileError) {
+          toast.error("Erro ao buscar perfil do usuário. Tente novamente mais tarde.", {
+            style: {
+              background: "#DC2626",
+              color: "#FFFFFF",
+            },
+          });
+          return;
+        }
         
         // STATE 1: New User - hasn't completed quiz
         if (!profile?.onboarding_completed) {
