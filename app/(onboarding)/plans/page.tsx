@@ -94,20 +94,26 @@ export default function PlansPage() {
 
       const user = sessionData.session.user;
 
-      // Update profile with has_active_plan = true and plan_tier
-      // In a real app, this would happen after payment confirmation
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          has_active_plan: true,
-          plan_tier: tier,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", user.id);
+      // Call secure server-side API to activate plan after payment confirmation
+      // This endpoint should verify payment before updating the database
+      const response = await fetch("/api/activate-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          planId,
+          tier,
+          userId: user.id,
+          // Optionally include payment confirmation data here
+        }),
+      });
 
-      if (error) {
-        console.error("Error updating plan:", error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error activating plan:", errorData);
         toast.error("Erro ao ativar plano. Tente novamente.");
+        setLoading(false);
         return;
       }
 
