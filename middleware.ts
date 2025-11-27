@@ -74,6 +74,7 @@ export async function middleware(request: NextRequest) {
     // allow access but treat as no quiz done
     if (profileError && profileError.code !== PROFILE_NOT_FOUND_ERROR) {
       console.error('Error fetching profile:', profileError)
+      return NextResponse.redirect(new URL('/error', request.url))
     }
 
     // Determine user state based on schema fields
