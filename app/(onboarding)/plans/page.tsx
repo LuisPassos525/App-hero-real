@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, Sparkles, Crown, Star } from "lucide-react";
 
-type PlanType = "starter" | "quarterly" | "elite";
+type PlanType = "monthly" | "quarterly" | "annual";
 
 interface Plan {
   id: PlanType;
@@ -18,17 +18,17 @@ interface Plan {
   features: string[];
   badge?: string;
   recommended?: boolean;
-  tier: string; // The plan_tier value to save in DB
+  tier: PlanType; // The plan_tier value to save in DB (uses same type for consistency)
 }
 
 const plans: Plan[] = [
   {
-    id: "starter",
+    id: "monthly",
     name: "Iniciante",
     title: "Mensal",
     price: "R$ 47",
     priceDescription: "/mês",
-    tier: "starter",
+    tier: "monthly",
     features: [
       "Acesso completo ao protocolo",
       "Treinos personalizados",
@@ -54,12 +54,12 @@ const plans: Plan[] = [
     recommended: true,
   },
   {
-    id: "elite",
+    id: "annual",
     name: "Elite",
     title: "Anual",
     price: "R$ 27",
     priceDescription: "/mês",
-    tier: "elite",
+    tier: "annual",
     features: [
       "Tudo do plano Trimestral",
       "12 meses de acesso",
