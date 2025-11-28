@@ -98,6 +98,7 @@ export default function PlansPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ tier }),
       });
 
@@ -113,7 +114,7 @@ export default function PlansPage() {
       const planName = plans.find((p) => p.id === planId)?.name;
       toast.success(`Plano ${planName} ativado com sucesso!`);
 
-      // Refresh and redirect to homepage
+      // Refresh to update Server Components and Middleware, then redirect
       router.refresh();
       router.push("/homepage");
     } catch (error) {
