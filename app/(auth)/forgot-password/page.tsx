@@ -58,9 +58,9 @@ export default function ForgotPasswordPage() {
       // Get origin for redirect URL
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       
-      // Send password reset email
+      // Send password reset email with redirect to update-password page
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${origin}/callback?next=/reset-password`,
+        redirectTo: `${origin}/auth/callback?next=/update-password`,
       });
 
       // Always show success message for security (don't reveal if email exists)

@@ -1,6 +1,26 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/forgot-password', '/auth/callback']
+
+// Special routes that require authentication but bypass onboarding state machine
+// (e.g., password reset after clicking email link)
+const AUTH_BYPASS_ROUTES = ['/update-password']
+
+// Supabase error code for "row not found" in single() query
+const PROFILE_NOT_FOUND_ERROR = 'PGRST116'
+
+// Helper function to check if a route is public
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some(route => pathname === route) || pathname.startsWith('/auth/')
+}
+
+// Helper function to check if route bypasses onboarding state machine
+function isAuthBypassRoute(pathname: string): boolean {
+  return AUTH_BYPASS_ROUTES.includes(pathname)
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -28,23 +48,87 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  const pathname = request.nextUrl.pathname
+
+  // Check if route is public using helper function
+  const isPublic = isPublicRoute(pathname)
+
   // Use getUser() instead of getSession() for reliable server-side auth
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Rotas protegidas
-  const protectedRoutes = ['/dashboard', '/homepage', '/quiz', '/profile']
-  
-  const isProtectedRoute = protectedRoutes.some(route => 
-    request.nextUrl.pathname.startsWith(route)
-  )
-
-  if (isProtectedRoute && !user) {
+  // If no session and trying to access protected route, redirect to login
+  if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Se já está logado, não deixa acessar login/register
-  if (['/login', '/register'].includes(request.nextUrl.pathname) && user) {
-    return NextResponse.redirect(new URL('/homepage', request.url))
+  // If user is logged in
+  if (user) {
+    // Query the user's profile once for all subsequent checks
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('onboarding_completed, has_active_plan')
+      .eq('id', user.id)
+      .single()
+
+    // If there's an error fetching the profile (other than not found), 
+    // redirect to error page for critical database issues
+    if (profileError && profileError.code !== PROFILE_NOT_FOUND_ERROR) {
+      console.error('Error fetching profile:', profileError)
+      return NextResponse.redirect(new URL('/error', request.url))
+    }
+
+    // Determine user state based on schema fields
+    // New user = profile not found (PGRST116 error)
+    // Existing user with incomplete data = profile exists but onboarding_completed is false
+    const isNewUser = profileError?.code === PROFILE_NOT_FOUND_ERROR
+    const hasCompletedQuiz = !isNewUser && profile?.onboarding_completed === true
+    const hasActivePlan = !isNewUser && profile?.has_active_plan === true
+
+    // Redirect authenticated users away from login/register
+    if (['/login', '/register'].includes(pathname)) {
+      if (!hasCompletedQuiz) {
+        return NextResponse.redirect(new URL('/quiz', request.url))
+      } else if (!hasActivePlan) {
+        return NextResponse.redirect(new URL('/plans', request.url))
+      } else {
+        return NextResponse.redirect(new URL('/homepage', request.url))
+      }
+    }
+
+    // For protected routes, enforce the STATE MACHINE with reverse blocking
+    // BUT skip the state machine for auth bypass routes (like /update-password)
+    if (!isPublic && !isAuthBypassRoute(pathname)) {
+      // ==========================================
+      // STATE MACHINE - 3 States with Reverse Blocking
+      // ==========================================
+      
+      // STATE 1: New User (onboarding_completed = false)
+      // - Allowed: /quiz only
+      // - Blocked: /plans, /homepage → redirect to /quiz
+      if (!hasCompletedQuiz) {
+        if (pathname !== '/quiz') {
+          return NextResponse.redirect(new URL('/quiz', request.url))
+        }
+      }
+      
+      // STATE 2: Quiz Done, No Plan (onboarding_completed = true, has_active_plan = false)
+      // - Allowed: /plans only
+      // - Blocked: /quiz (can't go back), /homepage → redirect to /plans
+      else if (!hasActivePlan) {
+        if (pathname !== '/plans') {
+          return NextResponse.redirect(new URL('/plans', request.url))
+        }
+      }
+      
+      // STATE 3: Active Member (onboarding_completed = true, has_active_plan = true)
+      // - Allowed: /homepage, /dashboard, etc.
+      // - Blocked: /quiz, /plans (can't go back) → redirect to /homepage
+      else {
+        if (pathname === '/quiz' || pathname === '/plans') {
+          return NextResponse.redirect(new URL('/homepage', request.url))
+        }
+      }
+    }
   }
 
   return response

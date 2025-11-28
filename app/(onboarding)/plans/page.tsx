@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, Sparkles, Crown, Star } from "lucide-react";
@@ -17,6 +18,7 @@ interface Plan {
   features: string[];
   badge?: string;
   recommended?: boolean;
+  tier: PlanType; // The plan_tier value to save in DB (uses same type for consistency)
 }
 
 const plans: Plan[] = [
@@ -26,6 +28,7 @@ const plans: Plan[] = [
     title: "Mensal",
     price: "R$ 47",
     priceDescription: "/mês",
+    tier: "monthly",
     features: [
       "Acesso completo ao protocolo",
       "Treinos personalizados",
@@ -39,6 +42,7 @@ const plans: Plan[] = [
     title: "Trimestral",
     price: "R$ 37",
     priceDescription: "/mês",
+    tier: "quarterly",
     features: [
       "Tudo do plano Mensal",
       "3 meses de acesso",
@@ -55,6 +59,7 @@ const plans: Plan[] = [
     title: "Anual",
     price: "R$ 27",
     priceDescription: "/mês",
+    tier: "annual",
     features: [
       "Tudo do plano Trimestral",
       "12 meses de acesso",
@@ -72,19 +77,51 @@ export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("quarterly");
   const [loading, setLoading] = useState(false);
 
-  const handleSelectPlan = async (planId: PlanType) => {
+  const handleSelectPlan = async (planId: PlanType, tier: string) => {
     setSelectedPlan(planId);
     setLoading(true);
 
-    // Simulate processing (payment integration to be added)
-    await new Promise((r) => setTimeout(r, 500));
+    try {
+      // Get the current user session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-    const planName = plans.find((p) => p.id === planId)?.name;
-    toast.success(`Plano ${planName} selecionado!`);
+      if (sessionError || !sessionData.session) {
+        setLoading(false);
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        router.push("/login");
+        return;
+      }
 
-    // Redirect to homepage (payment logic to be implemented)
-    router.push("/homepage");
-    setLoading(false);
+      // Call secure server-side API to activate plan
+      const response = await fetch("/api/activate-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tier }),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        console.error("[plans] Error activating plan:", responseData);
+        toast.error(responseData.error || "Erro ao ativar plano. Tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      const planName = plans.find((p) => p.id === planId)?.name;
+      toast.success(`Plano ${planName} ativado com sucesso!`);
+
+      // Refresh and redirect to homepage
+      router.refresh();
+      router.push("/homepage");
+    } catch (error) {
+      console.error("[plans] Plan selection error:", error);
+      toast.error("Erro ao processar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -179,7 +216,7 @@ export default function PlansPage() {
 
               {/* CTA Button */}
               <Button
-                onClick={() => handleSelectPlan(plan.id)}
+                onClick={() => handleSelectPlan(plan.id, plan.tier)}
                 disabled={loading}
                 className={`w-full py-6 rounded-xl font-bold transition-all ${
                   plan.recommended
