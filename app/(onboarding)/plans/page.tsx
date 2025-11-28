@@ -84,41 +84,24 @@ export default function PlansPage() {
     try {
       // Get the current user session
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      console.log('[plans] Session check:', { 
-        hasSession: !!sessionData.session, 
-        userId: sessionData.session?.user?.id,
-        sessionError: sessionError?.message 
-      });
 
-      if (!sessionData.session) {
+      if (sessionError || !sessionData.session) {
         setLoading(false);
         toast.error("Sessão expirada. Por favor, faça login novamente.");
         router.push("/login");
         return;
       }
 
-      const user = sessionData.session.user;
-
-      console.log('[plans] Calling activate-plan API with:', { planId, tier, userId: user.id });
-
-      // Call secure server-side API to activate plan after payment confirmation
-      // This endpoint should verify payment before updating the database
+      // Call secure server-side API to activate plan
       const response = await fetch("/api/activate-plan", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          planId,
-          tier,
-          userId: user.id,
-          // Optionally include payment confirmation data here
-        }),
+        body: JSON.stringify({ tier }),
       });
 
       const responseData = await response.json();
-      console.log('[plans] API response:', { status: response.status, ok: response.ok, data: responseData });
 
       if (!response.ok) {
         console.error("[plans] Error activating plan:", responseData);
