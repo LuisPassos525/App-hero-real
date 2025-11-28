@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
   // Verificar se o update realmente afetou alguma linha
   if (!data || data.length === 0) {
-    console.error('[activate-plan] No profile found for user:', user.id)
+    console.error('[activate-plan] No profile found for user')
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
