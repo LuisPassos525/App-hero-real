@@ -98,6 +98,7 @@ export default function PlansPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ tier }),
       });
 
@@ -113,9 +114,8 @@ export default function PlansPage() {
       const planName = plans.find((p) => p.id === planId)?.name;
       toast.success(`Plano ${planName} ativado com sucesso!`);
 
-      // Refresh and redirect to homepage
-      router.refresh();
-      router.push("/homepage");
+      // Hard navigation to ensure middleware re-checks the user's updated state
+      window.location.href = "/homepage";
     } catch (error) {
       console.error("[plans] Plan selection error:", error);
       toast.error("Erro ao processar. Tente novamente.");
