@@ -114,8 +114,9 @@ export default function PlansPage() {
       const planName = plans.find((p) => p.id === planId)?.name;
       toast.success(`Plano ${planName} ativado com sucesso!`);
 
-      // Hard navigation to ensure middleware re-checks the user's updated state
-      window.location.href = "/homepage";
+      // Refresh to update Server Components and Middleware, then redirect
+      router.refresh();
+      router.push("/homepage");
     } catch (error) {
       console.error("[plans] Plan selection error:", error);
       toast.error("Erro ao processar. Tente novamente.");
