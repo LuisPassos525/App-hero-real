@@ -87,7 +87,7 @@ export default function PlansPage() {
 
       if (sessionError || !sessionData.session) {
         setLoading(false);
-        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        toast.error("Sessão expirada. Faça login novamente.");
         router.push("/login");
         return;
       }
@@ -102,10 +102,19 @@ export default function PlansPage() {
         body: JSON.stringify({ tier }),
       });
 
+      // Validate content-type before parsing JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        console.error("[plans] Expected JSON, got HTML. API route may be broken.");
+        toast.error("Erro no servidor. A rota de ativação pode estar quebrada.");
+        setLoading(false);
+        return;
+      }
+
       const responseData = await response.json();
 
       if (!response.ok) {
-        console.error("[plans] Error activating plan:", responseData);
+        console.error("[plans] API error:", responseData);
         toast.error(responseData.error || "Erro ao ativar plano. Tente novamente.");
         setLoading(false);
         return;
@@ -114,12 +123,17 @@ export default function PlansPage() {
       const planName = plans.find((p) => p.id === planId)?.name;
       toast.success(`Plano ${planName} ativado com sucesso!`);
 
-      // Refresh to update Server Components and Middleware, then redirect
+      // Refresh to update Server Components and Middleware
       router.refresh();
-      router.push("/homepage");
+
+      // Small delay to ensure middleware processes the update
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Hard navigation to ensure middleware re-checks user state
+      window.location.href = "/homepage";
     } catch (error) {
-      console.error("[plans] Plan selection error:", error);
-      toast.error("Erro ao processar. Tente novamente.");
+      console.error("[plans] Fatal error:", error);
+      toast.error("Erro inesperado. Contate o suporte.");
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
+  console.log('[activate-plan] Request received')
+  
   const cookieStore = await cookies()
 
   // 1. Criar cliente Supabase no servidor
@@ -25,15 +27,17 @@ export async function POST(request: Request) {
     }
   )
 
-  // 2. Verificar Sessão
+  // 2. Verificar Sessão (CRITICAL - SEGURANÇA)
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError) {
     console.error('[activate-plan] Auth error:', authError)
     return NextResponse.json({ error: 'Authentication failed' }, { status: 401 })
   }
   if (!user) {
+    console.error('[activate-plan] No user found in session')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  console.log('[activate-plan] User authenticated:', user.id)
 
   // 3. Ler dados do corpo da requisição
   let tier: string
@@ -48,7 +52,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  // Validar tier
+  // Validar tier (CRITICAL - SEGURANÇA)
   const validTiers = ['monthly', 'quarterly', 'annual']
   if (!validTiers.includes(tier)) {
     return NextResponse.json(
@@ -56,8 +60,38 @@ export async function POST(request: Request) {
       { status: 400 }
     )
   }
+  console.log('[activate-plan] Tier validated:', tier)
 
-  // 4. Atualizar Perfil com .select() para verificar se o update afetou alguma linha
+  // 4. Verificar se perfil existe
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  // 5. Se perfil não existir, criar com plano ativo (fallback para trigger falhado)
+  if (!profile) {
+    console.log('[activate-plan] Profile not found, creating new profile')
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        has_active_plan: true,
+        plan_tier: tier,
+        updated_at: new Date().toISOString(),
+      })
+
+    if (insertError) {
+      console.error('[activate-plan] Failed to create profile:', insertError)
+      return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
+    }
+
+    console.log('[activate-plan] Profile created successfully with plan:', tier)
+    return NextResponse.json({ success: true })
+  }
+
+  // 6. Atualizar Perfil existente com .select() para verificar se afetou alguma linha
   const { data, error } = await supabase
     .from('profiles')
     .update({
@@ -70,14 +104,15 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error('[activate-plan] Database error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 
   // Verificar se o update realmente afetou alguma linha
   if (!data || data.length === 0) {
-    console.error('[activate-plan] No profile found for user')
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    console.error('[activate-plan] Update did not affect any rows')
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true })
+  console.log('[activate-plan] Update success:', data[0])
+  return NextResponse.json({ success: true, data: data[0] })
 }
